@@ -60,6 +60,7 @@ def init_db():
             laser_date TEXT DEFAULT '',
             procedure TEXT DEFAULT '',
             derm_date TEXT DEFAULT '',
+            surgery_type TEXT DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
@@ -77,6 +78,7 @@ def init_db():
         ("laser_date", "TEXT DEFAULT ''"),
         ("procedure", "TEXT DEFAULT ''"),
         ("derm_date", "TEXT DEFAULT ''"),
+        ("surgery_type", "TEXT DEFAULT ''"),
     ]
     for col_name, col_type in migration_columns:
         try:
@@ -147,7 +149,7 @@ def delete_patient(patient_id):
 
 # --- Log Entry CRUD ---
 
-def get_log_entries(log_category, search=None, status=None):
+def get_log_entries(log_category, search=None):
     """Get all log entries for a category with optional filters."""
     conn = get_db()
     query = """
@@ -161,10 +163,6 @@ def get_log_entries(log_category, search=None, status=None):
     if search:
         query += " AND (p.full_name LIKE ? OR p.chart_id LIKE ?)"
         params.extend([f"%{search}%", f"%{search}%"])
-
-    if status:
-        query += " AND le.status = ?"
-        params.append(status)
 
     query += " ORDER BY le.created_at DESC"
     entries = conn.execute(query, params).fetchall()
@@ -186,17 +184,17 @@ def get_log_entry(entry_id):
     return entry
 
 
-def create_log_entry(patient_id, log_category, date_of_encounter=None, notes="", status="Pending", follow_up_date=None,
+def create_log_entry(patient_id, log_category, notes="", follow_up_date=None,
                      advocate="", community="", problem="", appointment_timeframe="",
-                     procedure_type="", eye="", laser_date="", procedure="", derm_date=""):
+                     procedure_type="", eye="", laser_date="", procedure="", derm_date="", surgery_type=""):
     """Create a new log entry."""
     conn = get_db()
     cursor = conn.execute(
-        """INSERT INTO log_entries (patient_id, log_category, date_of_encounter, notes, status, follow_up_date,
-           advocate, community, problem, appointment_timeframe, procedure_type, eye, laser_date, procedure, derm_date)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (patient_id, log_category, date_of_encounter, notes, status, follow_up_date,
-         advocate, community, problem, appointment_timeframe, procedure_type, eye, laser_date, procedure, derm_date),
+        """INSERT INTO log_entries (patient_id, log_category, notes, follow_up_date,
+           advocate, community, problem, appointment_timeframe, procedure_type, eye, laser_date, procedure, derm_date, surgery_type)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (patient_id, log_category, notes, follow_up_date,
+         advocate, community, problem, appointment_timeframe, procedure_type, eye, laser_date, procedure, derm_date, surgery_type),
     )
     conn.commit()
     entry_id = cursor.lastrowid
@@ -204,19 +202,19 @@ def create_log_entry(patient_id, log_category, date_of_encounter=None, notes="",
     return entry_id
 
 
-def update_log_entry(entry_id, date_of_encounter=None, notes="", status="Pending", follow_up_date=None,
+def update_log_entry(entry_id, notes="", follow_up_date=None,
                      advocate="", community="", problem="", appointment_timeframe="",
-                     procedure_type="", eye="", laser_date="", procedure="", derm_date=""):
+                     procedure_type="", eye="", laser_date="", procedure="", derm_date="", surgery_type=""):
     """Update an existing log entry."""
     conn = get_db()
     conn.execute(
-        """UPDATE log_entries SET date_of_encounter = ?, notes = ?, status = ?, follow_up_date = ?,
+        """UPDATE log_entries SET notes = ?, follow_up_date = ?,
            advocate = ?, community = ?, problem = ?, appointment_timeframe = ?,
-           procedure_type = ?, eye = ?, laser_date = ?, procedure = ?, derm_date = ?,
+           procedure_type = ?, eye = ?, laser_date = ?, procedure = ?, derm_date = ?, surgery_type = ?,
            updated_at = CURRENT_TIMESTAMP WHERE id = ?""",
-        (date_of_encounter, notes, status, follow_up_date,
+        (notes, follow_up_date,
          advocate, community, problem, appointment_timeframe,
-         procedure_type, eye, laser_date, procedure, derm_date, entry_id),
+         procedure_type, eye, laser_date, procedure, derm_date, surgery_type, entry_id),
     )
     conn.commit()
     conn.close()

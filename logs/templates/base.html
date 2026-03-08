@@ -49,6 +49,10 @@
                     {{ cat }}
                 </a>
                 {% endfor %}
+                <a href="/backups"
+                   class="nav-link px-3 py-2 rounded-t-lg whitespace-nowrap {% if request.path == '/backups' %}active{% endif %}">
+                    🔒 Backups
+                </a>
             </div>
         </div>
     </nav>

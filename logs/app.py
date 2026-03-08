@@ -12,6 +12,10 @@ from database import (
     get_dashboard_counts, get_recent_activity, get_patient_logs,
 )
 from export import export_csv, export_pdf, export_all_csv
+from backup import (
+    start_backup_scheduler, create_backup, list_backups,
+    find_closest_backup, restore_backup, RESTORE_SLOTS,
+)
 
 app = Flask(__name__)
 app.secret_key = "medical-mission-logs-local-key"
@@ -42,8 +46,7 @@ def log_view(category):
         return redirect(url_for("dashboard"))
 
     search = request.args.get("search", "")
-    status = request.args.get("status", "")
-    entries = get_log_entries(category, search=search or None, status=status or None)
+    entries = get_log_entries(category, search=search or None)
     patients = get_all_patients()
 
     return render_template(
@@ -53,7 +56,6 @@ def log_view(category):
         patients=patients,
         categories=LOG_CATEGORIES,
         search=search,
-        status_filter=status,
     )
 
 
@@ -87,7 +89,27 @@ def add_patient():
     for log_cat in add_to_logs:
         if log_cat and log_cat in LOG_CATEGORIES:
             try:
-                create_log_entry(patient_id, log_cat)
+                # Gather category-specific fields
+                kwargs = {}
+                if log_cat == "Priority Patients":
+                    kwargs["advocate"] = request.form.get("priority_advocate", "").strip()
+                    kwargs["community"] = request.form.get("priority_community", "").strip()
+                    kwargs["surgery_type"] = request.form.get("priority_surgery_type", "").strip()
+                elif log_cat == "Dermatology":
+                    kwargs["advocate"] = request.form.get("derm_advocate", "").strip()
+                    kwargs["community"] = request.form.get("derm_community", "").strip()
+                    kwargs["procedure"] = request.form.get("derm_procedure", "").strip()
+                    kwargs["derm_date"] = request.form.get("derm_derm_date", "").strip()
+                elif log_cat == "Laser":
+                    kwargs["procedure_type"] = request.form.get("laser_procedure_type", "").strip()
+                    kwargs["eye"] = request.form.get("laser_eye", "").strip()
+                    kwargs["laser_date"] = request.form.get("laser_laser_date", "").strip()
+                elif log_cat == "Guzman Referrals":
+                    kwargs["problem"] = request.form.get("guzman_problem", "").strip()
+                    kwargs["appointment_timeframe"] = request.form.get("guzman_appointment_timeframe", "").strip()
+                elif log_cat == "Darlene Prosthetics":
+                    kwargs["notes"] = request.form.get("darlene_notes", "").strip()
+                create_log_entry(patient_id, log_cat, **kwargs)
                 added_logs.append(log_cat)
             except Exception:
                 pass
@@ -158,9 +180,7 @@ def remove_patient(patient_id):
 def add_log_entry():
     patient_id = request.form.get("patient_id", type=int)
     log_category = request.form.get("log_category", "")
-    date_of_encounter = request.form.get("date_of_encounter", "").strip() or None
     notes = request.form.get("notes", "").strip()
-    status = request.form.get("status", "Pending")
     follow_up_date = request.form.get("follow_up_date", "").strip() or None
     advocate = request.form.get("advocate", "").strip()
     community = request.form.get("community", "").strip()
@@ -171,15 +191,16 @@ def add_log_entry():
     laser_date = request.form.get("laser_date", "").strip()
     procedure = request.form.get("procedure", "").strip()
     derm_date = request.form.get("derm_date", "").strip()
+    surgery_type = request.form.get("surgery_type", "").strip()
     redirect_to = request.form.get("redirect_to", "/")
 
     if not patient_id or log_category not in LOG_CATEGORIES:
         flash("Please select a patient and a valid log category.", "error")
         return redirect(redirect_to)
 
-    create_log_entry(patient_id, log_category, date_of_encounter, notes, status, follow_up_date,
+    create_log_entry(patient_id, log_category, notes, follow_up_date,
                      advocate, community, problem, appointment_timeframe,
-                     procedure_type, eye, laser_date, procedure, derm_date)
+                     procedure_type, eye, laser_date, procedure, derm_date, surgery_type)
     patient = get_patient(patient_id)
     name = patient["full_name"] if patient else "Patient"
     flash(f"'{name}' added to {log_category} log.", "success")
@@ -194,9 +215,7 @@ def edit_log_entry(entry_id):
         return redirect(url_for("dashboard"))
 
     if request.method == "POST":
-        date_of_encounter = request.form.get("date_of_encounter", "").strip() or None
         notes = request.form.get("notes", "").strip()
-        status = request.form.get("status", "Pending")
         follow_up_date = request.form.get("follow_up_date", "").strip() or None
         advocate = request.form.get("advocate", "").strip()
         community = request.form.get("community", "").strip()
@@ -207,10 +226,11 @@ def edit_log_entry(entry_id):
         laser_date = request.form.get("laser_date", "").strip()
         procedure = request.form.get("procedure", "").strip()
         derm_date = request.form.get("derm_date", "").strip()
+        surgery_type = request.form.get("surgery_type", "").strip()
 
-        update_log_entry(entry_id, date_of_encounter, notes, status, follow_up_date,
+        update_log_entry(entry_id, notes, follow_up_date,
                          advocate, community, problem, appointment_timeframe,
-                         procedure_type, eye, laser_date, procedure, derm_date)
+                         procedure_type, eye, laser_date, procedure, derm_date, surgery_type)
         flash("Log entry updated.", "success")
         return redirect(url_for("log_view", category=entry["log_category"]))
 
@@ -279,10 +299,69 @@ def search():
     )
 
 
+# --- Backup & Restore ---
+
+@app.route("/backups")
+def backups_page():
+    backups = list_backups()
+    return render_template(
+        "backups.html",
+        backups=backups,
+        restore_slots=RESTORE_SLOTS,
+        categories=LOG_CATEGORIES,
+    )
+
+
+@app.route("/backup/create", methods=["POST"])
+def manual_backup():
+    path = create_backup()
+    if path:
+        flash("Manual backup created successfully.", "success")
+    else:
+        flash("Failed to create backup — database file not found.", "error")
+    return redirect(url_for("backups_page"))
+
+
+@app.route("/backup/restore", methods=["POST"])
+def restore_from_backup():
+    filename = request.form.get("filename", "")
+    if not filename:
+        flash("No backup file specified.", "error")
+        return redirect(url_for("backups_page"))
+
+    success, message = restore_backup(filename)
+    if success:
+        flash(message, "success")
+    else:
+        flash(message, "error")
+    return redirect(url_for("backups_page"))
+
+
+@app.route("/backup/restore-slot", methods=["POST"])
+def restore_from_slot():
+    minutes = request.form.get("minutes", type=int)
+    if minutes is None:
+        flash("Invalid time slot.", "error")
+        return redirect(url_for("backups_page"))
+
+    backup = find_closest_backup(minutes)
+    if not backup:
+        flash("No backup available for that time slot. Backups are created every 5 minutes — please wait a bit and try again.", "error")
+        return redirect(url_for("backups_page"))
+
+    success, message = restore_backup(backup["filename"])
+    if success:
+        flash(f"Restored to backup from {backup['age_label']} ({backup['timestamp']}). {message}", "success")
+    else:
+        flash(message, "error")
+    return redirect(url_for("backups_page"))
+
+
 # --- Start the app ---
 
 if __name__ == "__main__":
     init_db()
+    start_backup_scheduler()
     print("\n  Medical Mission Logs is running!")
     print("  Open your browser to: http://localhost:5000\n")
     app.run(debug=True, port=5000)

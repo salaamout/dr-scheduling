@@ -48,11 +48,6 @@
                 {% endfor %}
             </select>
         </div>
-        <div>
-            <label class="block text-xs text-gray-500 mb-1">Encounter Date</label>
-            <input type="date" name="date_of_encounter"
-                   class="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
-        </div>
         <div class="flex-1 min-w-48">
             <label class="block text-xs text-gray-500 mb-1">Notes</label>
             <input type="text" name="notes" placeholder="Optional notes..."
@@ -73,8 +68,6 @@
             <thead class="bg-gray-50 text-gray-600 text-left">
                 <tr>
                     <th class="px-4 py-3 font-medium">Log Category</th>
-                    <th class="px-4 py-3 font-medium">Encounter Date</th>
-                    <th class="px-4 py-3 font-medium">Status</th>
                     <th class="px-4 py-3 font-medium">Details</th>
                     <th class="px-4 py-3 font-medium">Notes</th>
                     <th class="px-4 py-3 font-medium">Follow-up</th>
@@ -88,15 +81,6 @@
                         <a href="/log/{{ entry.log_category }}" class="text-blue-600 hover:underline">
                             {{ entry.log_category }}
                         </a>
-                    </td>
-                    <td class="px-4 py-3 text-gray-600">{{ entry.date_of_encounter or '—' }}</td>
-                    <td class="px-4 py-3">
-                        <span class="px-2 py-0.5 rounded-full text-xs font-medium
-                            {% if entry.status == 'Completed' %}bg-green-100 text-green-700
-                            {% elif entry.status == 'In Progress' %}bg-yellow-100 text-yellow-700
-                            {% else %}bg-gray-100 text-gray-600{% endif %}">
-                            {{ entry.status }}
-                        </span>
                     </td>
                     <td class="px-4 py-3 text-gray-600 text-xs">
                         {% if entry.log_category == 'Priority Patients' %}

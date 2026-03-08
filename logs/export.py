@@ -15,11 +15,11 @@ def export_csv(log_category):
     writer = csv.writer(output)
 
     # Base headers
-    base = ["Full Name", "Chart ID", "Date of Birth", "Date of Encounter", "Status"]
+    base = ["Full Name", "Chart ID", "Date of Birth"]
 
     # Category-specific headers
     if log_category == "Priority Patients":
-        extra = ["Advocate", "Community"]
+        extra = ["Advocate", "Community", "Surgery Type"]
     elif log_category == "Guzman Referrals":
         extra = ["Problem", "Appointment Timeframe"]
     elif log_category == "Laser":
@@ -36,12 +36,10 @@ def export_csv(log_category):
             entry["full_name"],
             entry["chart_id"],
             entry["date_of_birth"],
-            entry["date_of_encounter"] or "",
-            entry["status"],
         ]
 
         if log_category == "Priority Patients":
-            extra_data = [entry["advocate"] or "", entry["community"] or ""]
+            extra_data = [entry["advocate"] or "", entry["community"] or "", entry["surgery_type"] or ""]
         elif log_category == "Guzman Referrals":
             extra_data = [entry["problem"] or "", entry["appointment_timeframe"] or ""]
         elif log_category == "Laser":
@@ -71,20 +69,20 @@ def export_pdf(log_category):
 
     # Category-specific column setup
     if log_category == "Priority Patients":
-        headers = ["Full Name", "Chart ID", "DOB", "Encounter", "Status", "Advocate", "Community", "Notes", "Follow-up"]
-        col_widths = [42, 25, 25, 28, 22, 35, 35, 40, 25]
+        headers = ["Full Name", "Chart ID", "DOB", "Advocate", "Community", "Surgery Type", "Notes", "Follow-up"]
+        col_widths = [48, 28, 28, 38, 38, 38, 45, 25]
     elif log_category == "Guzman Referrals":
-        headers = ["Full Name", "Chart ID", "DOB", "Encounter", "Status", "Problem", "Appt Timeframe", "Notes", "Follow-up"]
-        col_widths = [42, 25, 25, 28, 22, 40, 35, 40, 25]
+        headers = ["Full Name", "Chart ID", "DOB", "Problem", "Appt Timeframe", "Notes", "Follow-up"]
+        col_widths = [50, 30, 30, 50, 42, 50, 28]
     elif log_category == "Laser":
-        headers = ["Full Name", "Chart ID", "DOB", "Encounter", "Status", "Procedure", "Eye", "Date", "Notes", "Follow-up"]
-        col_widths = [40, 25, 25, 28, 22, 35, 18, 25, 40, 25]
+        headers = ["Full Name", "Chart ID", "DOB", "Procedure", "Eye", "Date", "Notes", "Follow-up"]
+        col_widths = [48, 30, 30, 42, 22, 30, 50, 28]
     elif log_category == "Dermatology":
-        headers = ["Full Name", "Chart ID", "DOB", "Encounter", "Status", "Advocate", "Community", "Procedure", "Date", "Notes"]
-        col_widths = [38, 22, 25, 25, 20, 30, 30, 30, 25, 37]
+        headers = ["Full Name", "Chart ID", "DOB", "Advocate", "Community", "Procedure", "Date", "Notes"]
+        col_widths = [45, 28, 28, 35, 35, 35, 30, 45]
     else:
-        headers = ["Full Name", "Chart ID", "DOB", "Encounter", "Status", "Notes", "Follow-up"]
-        col_widths = [55, 30, 30, 35, 25, 70, 30]
+        headers = ["Full Name", "Chart ID", "DOB", "Notes", "Follow-up"]
+        col_widths = [65, 40, 40, 90, 40]
 
     # Table header
     pdf.set_font("Helvetica", "B", 9)
@@ -99,12 +97,11 @@ def export_pdf(log_category):
             entry["full_name"][:25],
             entry["chart_id"][:12],
             entry["date_of_birth"] or "",
-            entry["date_of_encounter"] or "",
-            entry["status"] or "",
         ]
         if log_category == "Priority Patients":
             row_data = base + [
                 (entry["advocate"] or "")[:20], (entry["community"] or "")[:20],
+                (entry["surgery_type"] or "")[:20],
                 (entry["notes"] or "")[:25], entry["follow_up_date"] or "",
             ]
         elif log_category == "Guzman Referrals":
@@ -148,9 +145,9 @@ def export_all_csv():
 
     writer.writerow([
         "Log Category", "Full Name", "Chart ID", "Date of Birth",
-        "Date of Encounter", "Status", "Advocate", "Community",
+        "Advocate", "Community",
         "Problem", "Appointment Timeframe", "Procedure Type", "Eye", "Laser Date",
-        "Procedure", "Derm Date", "Notes", "Follow-up Date"
+        "Procedure", "Derm Date", "Surgery Type", "Notes", "Follow-up Date"
     ])
 
     for category in LOG_CATEGORIES:
@@ -161,8 +158,6 @@ def export_all_csv():
                 entry["full_name"],
                 entry["chart_id"],
                 entry["date_of_birth"],
-                entry["date_of_encounter"] or "",
-                entry["status"],
                 entry["advocate"] or "",
                 entry["community"] or "",
                 entry["problem"] or "",
@@ -172,6 +167,7 @@ def export_all_csv():
                 entry["laser_date"] or "",
                 entry["procedure"] or "",
                 entry["derm_date"] or "",
+                entry["surgery_type"] or "",
                 entry["notes"],
                 entry["follow_up_date"] or "",
             ])
