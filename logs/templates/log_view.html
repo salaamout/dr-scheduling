@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+{% block title %}{{ category }} — Medical Mission Logs{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">{{ category }}</h1>
+    <div class="flex gap-2">
+        <a href="/export/{{ category }}/csv" class="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 text-sm">
+            📄 CSV
+        </a>
+        <a href="/export/{{ category }}/pdf" class="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 text-sm">
+            📋 PDF
+        </a>
+        <button onclick="document.getElementById('addToLogModal').classList.add('active')"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium shadow">
+            + Add Patient to Log
+        </button>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
+    <form action="/log/{{ category }}" method="GET" class="flex flex-wrap gap-3 items-end">
+        <div class="flex-1 min-w-48">
+            <label class="block text-xs text-gray-500 mb-1">Search by Name or Chart ID</label>
+            <input type="text" name="search" value="{{ search }}" placeholder="Type to search..."
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+        </div>
+        <div class="min-w-32">
+            <label class="block text-xs text-gray-500 mb-1">Status</label>
+            <select name="status" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                <option value="">All</option>
+                <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+                <option value="In Progress" {% if status_filter == 'In Progress' %}selected{% endif %}>In Progress</option>
+                <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>Completed</option>
+            </select>
+        </div>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+            Filter
+        </button>
+        {% if search or status_filter %}
+        <a href="/log/{{ category }}" class="text-blue-600 hover:underline text-sm py-2">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Entries Table -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    {% if entries %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600 text-left">
+                <tr>
+                    <th class="px-4 py-3 font-medium">Full Name</th>
+                    <th class="px-4 py-3 font-medium">Chart ID</th>
+                    <th class="px-4 py-3 font-medium">Date of Birth</th>
+                    <th class="px-4 py-3 font-medium">Encounter Date</th>
+                    <th class="px-4 py-3 font-medium">Status</th>
+                    {% if category == 'Priority Patients' %}
+                    <th class="px-4 py-3 font-medium">Advocate</th>
+                    <th class="px-4 py-3 font-medium">Community</th>
+                    {% elif category == 'Guzman Referrals' %}
+                    <th class="px-4 py-3 font-medium">Problem</th>
+                    <th class="px-4 py-3 font-medium">Appt Timeframe</th>
+                    {% elif category == 'Laser' %}
+                    <th class="px-4 py-3 font-medium">Procedure Type</th>
+                    <th class="px-4 py-3 font-medium">Eye</th>
+                    <th class="px-4 py-3 font-medium">Date</th>
+                    {% elif category == 'Dermatology' %}
+                    <th class="px-4 py-3 font-medium">Advocate</th>
+                    <th class="px-4 py-3 font-medium">Community</th>
+                    <th class="px-4 py-3 font-medium">Procedure</th>
+                    <th class="px-4 py-3 font-medium">Date</th>
+                    {% endif %}
+                    <th class="px-4 py-3 font-medium">Notes</th>
+                    <th class="px-4 py-3 font-medium">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for entry in entries %}
+                <tr class="hover:bg-blue-50">
+                    <td class="px-4 py-3">
+                        <a href="/patient/{{ entry.patient_id }}" class="text-blue-600 hover:underline font-medium">
+                            {{ entry.full_name }}
+                        </a>
+                    </td>
+                    <td class="px-4 py-3 text-gray-600">{{ entry.chart_id }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ entry.date_of_birth }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ entry.date_of_encounter or '—' }}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 rounded-full text-xs font-medium
+                            {% if entry.status == 'Completed' %}bg-green-100 text-green-700
+                            {% elif entry.status == 'In Progress' %}bg-yellow-100 text-yellow-700
+                            {% else %}bg-gray-100 text-gray-600{% endif %}">
+                            {{ entry.status }}
+                        </span>
+                    </td>
+                    {% if category == 'Priority Patients' %}
+                    <td class="px-4 py-3 text-gray-600">{{ entry.advocate or '—' }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ entry.community or '—' }}</td>
+                    {% elif category == 'Guzman Referrals' %}
+                    <td class="px-4 py-3 text-gray-600">{{ entry.problem or '—' }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ entry.appointment_timeframe or '—' }}</td>
+                    {% elif category == 'Laser' %}
+                    <td class="px-4 py-3 text-gray-600">{{ entry.procedure_type or '—' }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ entry.eye or '—' }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ entry.laser_date or '—' }}</td>
+                    {% elif category == 'Dermatology' %}
+                    <td class="px-4 py-3 text-gray-600">{{ entry.advocate or '—' }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ entry.community or '—' }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ entry.procedure or '—' }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ entry.derm_date or '—' }}</td>
+                    {% endif %}
+                    <td class="px-4 py-3 text-gray-600 max-w-xs truncate">{{ entry.notes or '—' }}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex gap-2">
+                            <a href="/log-entry/{{ entry.id }}/edit" class="text-blue-600 hover:underline text-xs">Edit</a>
+                            <form action="/log-entry/{{ entry.id }}/delete" method="POST"
+                                  onsubmit="return confirm('Remove this entry from the log?')">
+                                <button type="submit" class="text-red-500 hover:underline text-xs">Remove</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="px-4 py-3 text-xs text-gray-400 border-t">
+        {{ entries|length }} entr{{ 'y' if entries|length == 1 else 'ies' }}
+    </div>
+    {% else %}
+    <div class="p-8 text-center text-gray-400">
+        <p class="text-lg mb-2">No entries in this log yet.</p>
+        <p class="text-sm">Click "Add Patient to Log" to get started.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add to Log Modal -->
+<div id="addToLogModal" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('active')">
+    <div class="modal-content">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Add Patient to {{ category }}</h2>
+
+        <!-- Existing patient -->
+        <form action="/log-entry/add" method="POST" class="mb-6">
+            <input type="hidden" name="log_category" value="{{ category }}">
+            <input type="hidden" name="redirect_to" value="/log/{{ category }}">
+            <h3 class="text-sm font-semibold text-gray-600 mb-2">Existing Patient</h3>
+            <div class="mb-3">
+                <select name="patient_id" required class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                    <option value="">Select patient...</option>
+                    {% for p in patients %}
+                    <option value="{{ p.id }}">{{ p.full_name }} ({{ p.chart_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="block text-xs text-gray-500 mb-1">Date of Encounter (optional)</label>
+                <input type="date" name="date_of_encounter"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+            </div>
+            <div class="mb-3">
+                <label class="block text-xs text-gray-500 mb-1">Notes (optional)</label>
+                <textarea name="notes" rows="2"
+                          class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"></textarea>
+            </div>
+            {% if category == 'Priority Patients' %}
+            <div class="mb-3">
+                <label class="block text-xs text-gray-500 mb-1">Advocate (optional)</label>
+                <input type="text" name="advocate"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+            </div>
+            <div class="mb-3">
+                <label class="block text-xs text-gray-500 mb-1">Community (optional)</label>
+                <input type="text" name="community"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+            </div>
+            {% elif category == 'Guzman Referrals' %}
+            <div class="mb-3">
+                <label class="block text-xs text-gray-500 mb-1">Problem (optional)</label>
+                <input type="text" name="problem"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+            </div>
+            <div class="mb-3">
+                <label class="block text-xs text-gray-500 mb-1">Appointment Timeframe (optional)</label>
+                <input type="text" name="appointment_timeframe"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+            </div>
+            {% elif category == 'Laser' %}
+            <div class="mb-3">
+                <label class="block text-xs text-gray-500 mb-1">Procedure Type (optional)</label>
+                <input type="text" name="procedure_type"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+            </div>
+            <div class="mb-3">
+                <label class="block text-xs text-gray-500 mb-1">Eye (optional)</label>
+                <select name="eye" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                    <option value="">Select...</option>
+                    <option value="OS">OS</option>
+                    <option value="OD">OD</option>
+                    <option value="OU">OU</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="block text-xs text-gray-500 mb-1">Date (optional)</label>
+                <input type="date" name="laser_date"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+            </div>
+            {% elif category == 'Dermatology' %}
+            <div class="mb-3">
+                <label class="block text-xs text-gray-500 mb-1">Advocate (optional)</label>
+                <input type="text" name="advocate"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+            </div>
+            <div class="mb-3">
+                <label class="block text-xs text-gray-500 mb-1">Community (optional)</label>
+                <input type="text" name="community"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+            </div>
+            <div class="mb-3">
+                <label class="block text-xs text-gray-500 mb-1">Procedure (optional)</label>
+                <input type="text" name="procedure"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+            </div>
+            <div class="mb-3">
+                <label class="block text-xs text-gray-500 mb-1">Date (optional)</label>
+                <input type="date" name="derm_date"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+            </div>
+            {% endif %}
+            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-medium w-full">
+                Add Existing Patient
+            </button>
+        </form>
+
+        <div class="border-t pt-4">
+            <h3 class="text-sm font-semibold text-gray-600 mb-2">Or Create New Patient</h3>
+            <form action="/patient/add" method="POST">
+                <input type="hidden" name="redirect_to" value="/log/{{ category }}">
+                <div class="mb-3">
+                    <label class="block text-xs text-gray-500 mb-1">Full Name *</label>
+                    <input type="text" name="full_name" required
+                           class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                </div>
+                <div class="mb-3">
+                    <label class="block text-xs text-gray-500 mb-1">Chart ID *</label>
+                    <input type="text" name="chart_id" required
+                           class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                </div>
+                <div class="mb-3">
+                    <label class="block text-xs text-gray-500 mb-1">Date of Birth *</label>
+                    <input type="date" name="date_of_birth" required
+                           class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                </div>
+                <div class="mb-3">
+                    <label class="block text-xs text-gray-500 mb-2">Add to logs</label>
+                    <div class="space-y-1.5">
+                        {% for cat in categories %}
+                        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                            <input type="checkbox" name="add_to_log" value="{{ cat }}"
+                                   {% if cat == category %}checked{% endif %}
+                                   class="rounded border-gray-300 text-blue-600 focus:ring-blue-300">
+                            {{ cat }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium w-full">
+                    Create & Add to Logs
+                </button>
+            </form>
+        </div>
+
+        <div class="mt-4 text-right">
+            <button onclick="document.getElementById('addToLogModal').classList.remove('active')"
+                    class="text-gray-500 hover:text-gray-700 text-sm">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

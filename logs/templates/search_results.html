@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Search Results — Medical Mission Logs{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/" class="text-blue-600 hover:underline text-sm">← Back to Dashboard</a>
+</div>
+
+<h1 class="text-2xl font-bold text-gray-800 mb-4">
+    {% if query %}Search Results for "{{ query }}"{% else %}Search Patients{% endif %}
+</h1>
+
+<!-- Search form for mobile -->
+<div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6 md:hidden">
+    <form action="/search" method="GET" class="flex gap-2">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by name or Chart ID..."
+               class="flex-1 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+            Search
+        </button>
+    </form>
+</div>
+
+{% if query %}
+    {% if patients %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 text-gray-600 text-left">
+                    <tr>
+                        <th class="px-4 py-3 font-medium">Full Name</th>
+                        <th class="px-4 py-3 font-medium">Chart ID</th>
+                        <th class="px-4 py-3 font-medium">Date of Birth</th>
+                        <th class="px-4 py-3 font-medium">Notes</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for p in patients %}
+                    <tr class="hover:bg-blue-50">
+                        <td class="px-4 py-3">
+                            <a href="/patient/{{ p.id }}" class="text-blue-600 hover:underline font-medium">
+                                {{ p.full_name }}
+                            </a>
+                        </td>
+                        <td class="px-4 py-3 text-gray-600">{{ p.chart_id }}</td>
+                        <td class="px-4 py-3 text-gray-600">{{ p.date_of_birth }}</td>
+                        <td class="px-4 py-3 text-gray-600 max-w-xs truncate">{{ p.notes or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-4 py-3 text-xs text-gray-400 border-t">
+            {{ patients|length }} result{{ 's' if patients|length != 1 else '' }}
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-100 text-center text-gray-400">
+        <p class="text-lg mb-2">No patients found matching "{{ query }}".</p>
+        <p class="text-sm">Try a different search term or <a href="/" class="text-blue-600 hover:underline">add a new patient</a>.</p>
+    </div>
+    {% endif %}
+{% else %}
+<div class="bg-white rounded-xl p-8 shadow-sm border border-gray-100 text-center text-gray-400">
+    <p>Enter a name or Chart ID to search.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}{{ patient.full_name }} — Medical Mission Logs{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/" class="text-blue-600 hover:underline text-sm">← Back to Dashboard</a>
+</div>
+
+<div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
+    <div class="flex items-start justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">{{ patient.full_name }}</h1>
+            <div class="mt-2 text-sm text-gray-600 space-y-1">
+                <p><span class="font-medium">Chart ID:</span> {{ patient.chart_id }}</p>
+                <p><span class="font-medium">Date of Birth:</span> {{ patient.date_of_birth }}</p>
+                {% if patient.notes %}
+                <p><span class="font-medium">Notes:</span> {{ patient.notes }}</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <a href="/patient/{{ patient.id }}/edit"
+               class="bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 text-sm">
+                Edit
+            </a>
+            <form action="/patient/{{ patient.id }}/delete" method="POST"
+                  onsubmit="return confirm('Delete this patient and all their log entries? This cannot be undone.')">
+                <button type="submit" class="bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 text-sm">
+                    Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add to another log -->
+<div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 mb-6">
+    <h2 class="text-lg font-semibold text-gray-700 mb-3">Add to Log</h2>
+    <form action="/log-entry/add" method="POST" class="flex flex-wrap gap-3 items-end">
+        <input type="hidden" name="patient_id" value="{{ patient.id }}">
+        <input type="hidden" name="redirect_to" value="/patient/{{ patient.id }}">
+        <div class="min-w-40">
+            <label class="block text-xs text-gray-500 mb-1">Log Category</label>
+            <select name="log_category" required class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                <option value="">Select log...</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}">{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Encounter Date</label>
+            <input type="date" name="date_of_encounter"
+                   class="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+        </div>
+        <div class="flex-1 min-w-48">
+            <label class="block text-xs text-gray-500 mb-1">Notes</label>
+            <input type="text" name="notes" placeholder="Optional notes..."
+                   class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+        </div>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-medium">
+            Add
+        </button>
+    </form>
+</div>
+
+<!-- Patient's log entries -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <h2 class="text-lg font-semibold text-gray-700 px-5 pt-5 pb-3">Log Entries</h2>
+    {% if logs %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600 text-left">
+                <tr>
+                    <th class="px-4 py-3 font-medium">Log Category</th>
+                    <th class="px-4 py-3 font-medium">Encounter Date</th>
+                    <th class="px-4 py-3 font-medium">Status</th>
+                    <th class="px-4 py-3 font-medium">Details</th>
+                    <th class="px-4 py-3 font-medium">Notes</th>
+                    <th class="px-4 py-3 font-medium">Follow-up</th>
+                    <th class="px-4 py-3 font-medium">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for entry in logs %}
+                <tr class="hover:bg-blue-50">
+                    <td class="px-4 py-3">
+                        <a href="/log/{{ entry.log_category }}" class="text-blue-600 hover:underline">
+                            {{ entry.log_category }}
+                        </a>
+                    </td>
+                    <td class="px-4 py-3 text-gray-600">{{ entry.date_of_encounter or '—' }}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 rounded-full text-xs font-medium
+                            {% if entry.status == 'Completed' %}bg-green-100 text-green-700
+                            {% elif entry.status == 'In Progress' %}bg-yellow-100 text-yellow-700
+                            {% else %}bg-gray-100 text-gray-600{% endif %}">
+                            {{ entry.status }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-gray-600 text-xs">
+                        {% if entry.log_category == 'Priority Patients' %}
+                            {% if entry.advocate %}Advocate: {{ entry.advocate }}<br>{% endif %}
+                            {% if entry.community %}Community: {{ entry.community }}{% endif %}
+                        {% elif entry.log_category == 'Guzman Referrals' %}
+                            {% if entry.problem %}Problem: {{ entry.problem }}<br>{% endif %}
+                            {% if entry.appointment_timeframe %}Timeframe: {{ entry.appointment_timeframe }}{% endif %}
+                        {% elif entry.log_category == 'Laser' %}
+                            {% if entry.procedure_type %}Procedure: {{ entry.procedure_type }}<br>{% endif %}
+                            {% if entry.eye %}Eye: {{ entry.eye }}<br>{% endif %}
+                            {% if entry.laser_date %}Date: {{ entry.laser_date }}{% endif %}
+                        {% elif entry.log_category == 'Dermatology' %}
+                            {% if entry.advocate %}Advocate: {{ entry.advocate }}<br>{% endif %}
+                            {% if entry.community %}Community: {{ entry.community }}<br>{% endif %}
+                            {% if entry.procedure %}Procedure: {{ entry.procedure }}<br>{% endif %}
+                            {% if entry.derm_date %}Date: {{ entry.derm_date }}{% endif %}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-gray-600 max-w-xs truncate">{{ entry.notes or '—' }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ entry.follow_up_date or '—' }}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex gap-2">
+                            <a href="/log-entry/{{ entry.id }}/edit" class="text-blue-600 hover:underline text-xs">Edit</a>
+                            <form action="/log-entry/{{ entry.id }}/delete" method="POST"
+                                  onsubmit="return confirm('Remove this log entry?')">
+                                <button type="submit" class="text-red-500 hover:underline text-xs">Remove</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-6 text-center text-gray-400 text-sm">
+        This patient has no log entries yet.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
