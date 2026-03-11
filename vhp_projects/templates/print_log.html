@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Surgery Log</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 0;
+        }
+        
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0.25in 0.5in;
+            padding: 0;
+        }
+        
+        @media print {
+            @page {
+                margin: 0;
+            }
+            body { 
+                margin: 0.25in 0.5in;
+                padding: 0;
+            }
+        }
+        
+        .no-print { 
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+        }
+        
+        /* Single Log Styles */
+        .single-log .header { margin-bottom: 20px; }
+        .single-log table { 
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .single-log th, .single-log td { 
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .single-log th { background-color: #f5f5f5; }
+        
+        /* Daily Log Styles */
+        .daily-log {
+            width: 100%;
+        }
+        
+        .patient-entry {
+            page-break-inside: avoid;
+            margin-bottom: 40px;
+            border: 2px solid #000;
+            padding: 15px;
+        }
+        
+        .patient-entry table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .patient-entry td {
+            padding: 8px;
+            vertical-align: top;
+            border: none;
+        }
+        
+        .field-label {
+            font-weight: bold;
+            text-decoration: underline;
+            font-size: 14pt;
+        }
+        
+        .field-value {
+            font-size: 14pt;
+            min-height: 25px;
+        }
+        
+        .top-border {
+            border-top: none;
+        }
+        
+        .bottom-border {
+            border-bottom: none;
+        }
+        
+        .left-border {
+            border-left: none;
+        }
+        
+        .right-border {
+            border-right: none;
+        }
+        
+        .section-header {
+            background-color: #000;
+            color: #fff;
+            font-weight: bold;
+            font-size: 16pt;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        .dashed-line {
+            border-bottom: 1px dashed #999;
+            margin: 20px 0;
+        }
+        
+        .page-break {
+            page-break-after: always;
+        }
+        
+        .log-copy {
+            page-break-inside: avoid;
+            height: 2.45in;
+            margin-bottom: 0;
+            padding: 12px 30px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .log-copy > div:first-child {
+            margin-top: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            flex-grow: 1;
+        }
+        
+        .log-copy > div:first-child > div:first-child {
+            margin-top: 0;
+        }
+        
+        .single-log {
+            margin-top: 0;
+            padding-top: 0;
+        }
+        
+        .log-copy:not(:last-child) {
+            border-bottom: 2px dashed #999;
+        }
+        
+        .destination-label {
+            position: absolute;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%) rotate(180deg);
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            color: red;
+            font-weight: bold;
+            font-size: 12pt;
+            letter-spacing: 1px;
+        }
+        
+        @media print {
+            .no-print { display: none; }
+            body { margin: 0; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    {% if log_type == 'Single' %}
+    <div class="single-log">
+        {% for destination in ['Pre-Op', 'Post-Op', 'O.R.', 'Pharmacy'] %}
+        <div class="log-copy" style="position: relative;">
+            <div style="margin-bottom: 0; margin-top: 0;">
+                <!-- Row 1: Chart#, Patient Name, Date, Destination label -->
+                <div style="display: flex; align-items: baseline; margin-bottom: 12px;">
+                    <div style="flex: 0 0 15%;">
+                        <span class="field-label">Chart#</span>
+                        <span style="margin-left: 10px;">{{ p.chart_number }}</span>
+                    </div>
+                    <div style="flex: 0 0 50%; margin-left: 40px;">
+                        <span class="field-label">Patient Name:</span>
+                        <span style="margin-left: 10px;">{{ p.name }}</span>
+                    </div>
+                    <div style="flex: 0 0 20%; margin-left: 40px;">
+                        <span class="field-label">Date:</span>
+                        <span style="margin-left: 10px;">{{ p.surgery_date.strftime('%Y-%m-%d') if p.surgery_date else '' }}</span>
+                    </div>
+                </div>
+                
+                <!-- Row 2: Procedure, Age, Sex -->
+                <div style="display: flex; align-items: baseline; margin-bottom: 12px;">
+                    <div style="flex: 0 0 50%;">
+                        <span class="field-label">Procedure:</span>
+                        <span style="margin-left: 10px;">{{ p.procedure }}{{ ' ' + p.eye if p.eye else '' }}</span>
+                    </div>
+                    <div style="flex: 0 0 15%; margin-left: 40px;">
+                        <span class="field-label">Age:</span>
+                        <span style="margin-left: 10px;">{{ p.age }}</span>
+                    </div>
+                    <div style="flex: 0 0 15%; margin-left: 40px;">
+                        <span class="field-label">Sex:</span>
+                        <span style="margin-left: 10px;">{{ p.sex }}</span>
+                    </div>
+                </div>
+                
+                <!-- Row 3: PRE-OP TIME IN, Right, Left -->
+                <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                    <div style="flex: 0 0 30%;">
+                        <div style="border: 2px solid #000; padding: 8px; font-weight: bold;">
+                            PRE-OP TIME IN:
+                        </div>
+                    </div>
+                    <div style="flex: 0 0 25%; margin-left: 80px;">
+                        <span class="field-label">Right:</span>
+                        <span style="display: inline-block; width: 80px; border-bottom: 1px solid #000; margin-left: 5px;"></span>
+                    </div>
+                    <div style="flex: 0 0 25%; margin-left: 40px;">
+                        <span class="field-label">Left:</span>
+                        <span style="display: inline-block; width: 80px; border-bottom: 1px solid #000; margin-left: 5px;"></span>
+                    </div>
+                </div>
+                
+                <!-- Row 4: Surgeon, Anaesthesia Time In -->
+                <div style="display: flex; align-items: baseline; flex-wrap: nowrap; padding-bottom: 5px;">
+                    <div style="flex: 0 0 45%;">
+                        <span class="field-label">Surgeon:</span>
+                        <span style="display: inline-block; width: 180px; border-bottom: 1px solid #000; margin-left: 5px;"></span>
+                    </div>
+                    <div style="flex: 0 0 45%; margin-left: 40px;">
+                        <span class="field-label">Anaesthesia Time In:</span>
+                        <span style="display: inline-block; width: 100px; border-bottom: 1px solid #000; margin-left: 5px;"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="destination-label">
+                {{ destination }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="daily-log">
+        {% for patient in patients %}
+            {% if loop.index0 % 4 == 0 and loop.index0 > 0 %}
+                <div class="page-break"></div>
+            {% endif %}
+            
+            <div class="log-copy">
+                <div style="margin-bottom: 0; margin-top: 0;">
+                    <!-- Row 1: Chart#, Patient Name, Date -->
+                    <div style="display: flex; align-items: baseline; margin-bottom: 12px;">
+                        <div style="flex: 0 0 15%;">
+                            <span class="field-label">Chart#</span>
+                            <span style="margin-left: 10px;">{{ patient.chart_number }}</span>
+                        </div>
+                        <div style="flex: 0 0 50%; margin-left: 40px;">
+                            <span class="field-label">Patient Name:</span>
+                            <span style="margin-left: 10px;">{{ patient.name }}</span>
+                        </div>
+                        <div style="flex: 0 0 20%; margin-left: 40px;">
+                            <span class="field-label">Date:</span>
+                            <span style="margin-left: 10px;">{{ patient.surgery_date.strftime('%Y-%m-%d') if patient.surgery_date else '' }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Row 2: Procedure, Age, Sex -->
+                    <div style="display: flex; align-items: baseline; margin-bottom: 12px;">
+                        <div style="flex: 0 0 50%;">
+                            <span class="field-label">Procedure:</span>
+                            <span style="margin-left: 10px;">{{ patient.procedure }}{{ ' ' + patient.eye if patient.eye else '' }}</span>
+                        </div>
+                        <div style="flex: 0 0 15%; margin-left: 40px;">
+                            <span class="field-label">Age:</span>
+                            <span style="margin-left: 10px;">{{ patient.age }}</span>
+                        </div>
+                        <div style="flex: 0 0 15%; margin-left: 40px;">
+                            <span class="field-label">Sex:</span>
+                            <span style="margin-left: 10px;">{{ patient.sex }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Row 3: PRE-OP TIME IN, Right, Left -->
+                    <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                        <div style="flex: 0 0 30%;">
+                            <div style="border: 2px solid #000; padding: 8px; font-weight: bold;">
+                                PRE-OP TIME IN:
+                            </div>
+                        </div>
+                        <div style="flex: 0 0 25%; margin-left: 80px;">
+                            <span class="field-label">Right:</span>
+                            <span style="display: inline-block; width: 80px; border-bottom: 1px solid #000; margin-left: 5px;"></span>
+                        </div>
+                        <div style="flex: 0 0 25%; margin-left: 40px;">
+                            <span class="field-label">Left:</span>
+                            <span style="display: inline-block; width: 80px; border-bottom: 1px solid #000; margin-left: 5px;"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Row 4: Surgeon, Anaesthesia Time In -->
+                    <div style="display: flex; align-items: baseline; flex-wrap: nowrap; padding-bottom: 5px;">
+                        <div style="flex: 0 0 45%;">
+                            <span class="field-label">Surgeon:</span>
+                            <span style="display: inline-block; width: 180px; border-bottom: 1px solid #000; margin-left: 5px;"></span>
+                        </div>
+                        <div style="flex: 0 0 45%; margin-left: 40px;">
+                            <span class="field-label">Anaesthesia Time In:</span>
+                            <span style="display: inline-block; width: 100px; border-bottom: 1px solid #000; margin-left: 5px;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <button class="no-print" onclick="window.print()">Print Log</button>
+</body>
+</html>

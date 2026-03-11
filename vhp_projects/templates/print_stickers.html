@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Patient Laserband</title>
+    <style>
+        @page {
+            size: landscape;
+            margin: 0.25in;
+        }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 20px;
+        }
+        .laserband-container {
+            max-width: 10in;
+            margin: 0 auto;
+        }
+        .top-row {
+            display: flex;
+            justify-content: flex-start;
+            gap: 8px;
+            margin-bottom: 80px;
+        }
+        .small-box {
+            border: none;
+            padding: 6px 8px;
+            width: 2.3in;
+            font-size: 9pt;
+            line-height: 1.4;
+        }
+        .field-line {
+            margin-bottom: 2px;
+        }
+        .field-label {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        .large-box {
+            border: none;
+            padding: 12px 15px;
+            width: 60%;
+            margin-left: 35%;
+            box-sizing: border-box;
+        }
+        .large-box .field-line {
+            margin-bottom: 6px;
+            font-size: 10pt;
+            line-height: 1.5;
+        }
+        .large-box .field-label {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        .large-box .field-value {
+            margin-left: 4px;
+        }
+        @media print {
+            .no-print { display: none; }
+            body { 
+                margin: 0; 
+                padding: 0.25in;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="laserband-container">
+        <!-- Top row with 4 small boxes -->
+        <div class="top-row">
+            {% for i in range(4) %}
+            <!-- Box {{ i + 1 }} -->
+            <div class="small-box">
+                <div class="field-line">
+                    <span class="field-label">Chart #</span> {{ p.chart_number }}
+                    <span style="margin-left: 30px;"><span class="field-label">Age:</span> {{ p.age }}</span>
+                    <span style="margin-left: 30px;"><span class="field-label">Sex:</span> {{ p.sex }}</span>
+                </div>
+                <div class="field-line"><span class="field-label">Name:</span> {{ p.name }}</div>
+                <div class="field-line"><span class="field-label">Surgery:</span> {{ p.surgery_type }} <span style="margin-left: 30px;"><span class="field-label">Date:</span> {{ p.surgery_date.strftime('%Y-%m-%d') }}</span></div>
+                <div class="field-line"><span class="field-label">Procedure:</span> {{ p.procedure }}{{ ' ' + p.eye if p.eye else '' }}</div>
+                <div class="field-line"><span class="field-label">Advocate:</span> {{ p.advocate }}</div>
+                <div class="field-line"><span class="field-label">Community:</span> {{ p.community }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Large bottom box -->
+        <div class="large-box">
+            <div class="field-line">
+                <span class="field-label">Chart #</span>
+                <span class="field-value">{{ p.chart_number }}</span>
+                <span style="margin-left: 80px;"><span class="field-label">Age:</span>
+                <span class="field-value">{{ p.age }}</span></span>
+                <span style="margin-left: 80px;"><span class="field-label">Sex:</span>
+                <span class="field-value">{{ p.sex }}</span></span>
+            </div>
+            <div class="field-line">
+                <span class="field-label">Name:</span>
+                <span class="field-value">{{ p.name }}</span>
+            </div>
+            <div class="field-line">
+                <span class="field-label">Procedure:</span>
+                <span class="field-value">{{ p.procedure }}{{ ' ' + p.eye if p.eye else '' }}</span>
+            </div>
+            <div class="field-line">
+                <span class="field-label">Advocate:</span>
+                <span class="field-value">{{ p.advocate }}</span>
+                <span style="margin-left: 80px;"><span class="field-label">Surgery Type:</span>
+                <span class="field-value">{{ p.surgery_type }}</span></span>
+            </div>
+            <div class="field-line">
+                <span class="field-label">Community:</span>
+                <span class="field-value">{{ p.community }}</span>
+                <span style="margin-left: 80px;"><span class="field-label">Date of Surgery:</span>
+                <span class="field-value">{{ p.surgery_date.strftime('%Y-%m-%d') }}</span></span>
+            </div>
+        </div>
+    </div>
+    
+    <button class="no-print" onclick="window.print()" style="margin-top: 20px; padding: 10px 20px; font-size: 14pt; cursor: pointer;">Print Laserband</button>
+</body>
+</html>

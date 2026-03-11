@@ -1,0 +1,296 @@
+/* VHP Patient Database - Shared Styles */
+
+body {
+    padding: 20px;
+    max-width: 100%;
+    overflow-x: auto;
+    font-family: Arial, sans-serif;
+}
+
+/* Table styles */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 20px;
+    font-size: 0.9em;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #ddd;
+    white-space: nowrap;
+}
+
+th {
+    background-color: #f4f4f4;
+    position: sticky;
+    top: 0;
+    cursor: pointer;
+}
+
+th:hover {
+    background-color: #e4e4e4;
+}
+
+th.sorted-asc::after {
+    content: " ▲";
+    font-size: 0.8em;
+}
+
+th.sorted-desc::after {
+    content: " ▼";
+    font-size: 0.8em;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* Button styles */
+.button {
+    padding: 5px 10px;
+    text-decoration: none;
+    background: #007bff;
+    color: white;
+    border-radius: 3px;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.add-button {
+    margin-bottom: 20px;
+    font-size: 1em;
+}
+
+.delete-button {
+    background: #dc3545;
+}
+
+.restore-button {
+    background: #28a745;
+}
+
+/* Actions column */
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Dropdown */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    left: 0;
+    top: 100%;
+}
+
+.dropdown-item {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-item:hover {
+    background-color: #f1f1f1;
+}
+
+/* Table container */
+.table-container {
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+/* Notes cell truncation */
+.notes-cell {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Form styles */
+form.patient-form {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.field {
+    margin-bottom: 15px;
+}
+
+.field label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="number"],
+select,
+textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+textarea {
+    height: 100px;
+}
+
+.save-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.save-btn:hover {
+    background: #218838;
+}
+
+.error {
+    color: red;
+    font-size: 0.9em;
+}
+
+/* Flash messages */
+.flash-messages {
+    margin-bottom: 15px;
+}
+
+.flash-messages .alert {
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.flash-messages .alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.flash-messages .alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Cancelled row */
+.cancelled-row {
+    opacity: 0.55;
+    text-decoration: line-through;
+}
+
+.cancelled-row td {
+    color: #888;
+}
+
+/* Cancel toggle button */
+.cancel-toggle-btn {
+    background: transparent;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-size: 0.85em;
+    min-width: 36px;
+    min-height: 24px;
+    color: #666;
+}
+
+.cancel-toggle-btn:hover {
+    background: #f8d7da;
+    border-color: #dc3545;
+}
+
+.cancel-toggle-btn.cancelled-active {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Inline editable number */
+.editable-number .number-display {
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.editable-number .number-display:hover {
+    background: #e7f1ff;
+    outline: 1px dashed #007bff;
+}
+
+/* Backup & Restore page */
+.backup-section {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.backup-info {
+    background: #e7f3ff;
+    border: 1px solid #b8daff;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+    color: #004085;
+    line-height: 1.6;
+}
+
+.restore-slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+}
+
+.restore-slot-btn {
+    width: 100%;
+    padding: 12px 10px;
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 6px;
+    color: #795548;
+    font-size: 0.9em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.restore-slot-btn:hover {
+    background: #ffecb3;
+}
+
+.safety-backup-row {
+    background-color: #e8f5e9 !important;
+}

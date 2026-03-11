@@ -1,0 +1,292 @@
+================================================================================
+REFACTORING PLAN — VHP Patient Database
+================================================================================
+Created: March 9, 2026
+Status:  Ready to execute
+
+================================================================================
+DECISIONS MADE
+================================================================================
+- printable.html            -> DELETE (confirmed not needed)
+- Split patient_database.py -> YES (light split into config, models, forms,
+                               routes, backup modules)
+- Surgery types             -> KEEP HARDCODED
+- Deployment                -> LOCALHOST ONLY
+- Mac distribution          -> REPLACE shell scripts with PyInstaller
+- CSRF                      -> FIX (re-enable properly)
+
+================================================================================
+NEW PROJECT STRUCTURE
+================================================================================
+
+vhp_projects/
+├── app/
+│   ├── __init__.py            # App factory — creates Flask app, registers
+│   │                            blueprints, initializes extensions
+│   ├── config.py              # All Flask/app configuration in one place
+│   ├── models.py              # Patient SQLAlchemy model
+│   ├── forms.py               # PatientForm (WTForms)
+│   ├── routes.py              # All route handlers (Blueprint)
+│   └── backup.py              # Backup logic (create, cleanup, retention)
+├── static/
+│   ├── css/
+│   │   └── style.css          # Shared styles extracted from templates
+│   └── js/
+│       └── app.js             # Sorting, dropdowns, delete confirmation
+├── templates/
+│   ├── base.html              # NEW — shared boilerplate, nav, styles
+│   ├── index.html             # Extends base.html
+│   ├── patient_form.html      # Extends base.html (create/edit)
+│   ├── trash.html             # Extends base.html
+│   ├── print_stickers.html    # Print layout
+│   ├── print_schedule.html    # Print layout
+│   └── print_log.html         # Print layout
+├── instance/
+│   ├── patients.db            # SQLite database (gitignored)
+│   └── backups/               # Backup directory (gitignored)
+├── scripts/
+│   ├── build_app.sh           # NEW — PyInstaller build script
+│   ├── create_mac_app.sh      # DEPRECATED — kept as fallback
+│   ├── create_icon.sh         # DEPRECATED — kept as fallback
+│   └── launch_app.py          # DEPRECATED — kept as fallback
+├── run.py                     # NEW — entry point: from app import create_app
+├── requirements.txt           # NEW
+├── .gitignore                 # NEW
+├── README.md                  # UPDATED — full documentation
+├── MAC_APP_README.md          # UPDATED — deprecation note added
+└── REFACTORING_PLAN.txt       # This file
+
+================================================================================
+PHASE 1: CRITICAL FIXES (P0)
+================================================================================
+
+1.1  Fix HTML bugs in templates/index.html
+     - Close unclosed <tbody> tag
+     - Close unclosed .table-container <div>
+
+1.2  Fix security issues
+     - Generate SECRET_KEY with os.urandom(24) instead of hardcoding
+     - Set WTF_CSRF_CHECK_DEFAULT = True
+     - Set WTF_CSRF_TIME_LIMIT = 3600
+     - Ensure all forms include {{ form.hidden_tag() }} in templates
+
+1.3  Add requirements.txt
+     Contents:
+       Flask>=3.0
+       Flask-SQLAlchemy>=3.1
+       Flask-WTF>=1.2
+       WTForms>=3.1
+       Pillow>=10.0
+
+1.4  Add .gitignore
+     Contents:
+       instance/
+       server.log
+       __pycache__/
+       *.pyc
+       *.pyo
+       *.app
+       build/
+       dist/
+       *.spec
+       .DS_Store
+       venv/
+       .env
+
+================================================================================
+PHASE 2: BUG FIXES & DEAD CODE (P1)
+================================================================================
+
+2.1  Fix print_patient route
+     - Handle unknown print_type values with 400 error or redirect + flash
+
+2.2  Fix print_daily_log route
+     - Add try/except for invalid date format, flash error and redirect
+
+2.3  Fix port mismatch in MAC_APP_README.md
+     - Change references from port 5000 -> 5001 (or make consistent)
+
+2.4  Fix PERIODIC_BACKUP_INTERVAL config not being used
+     - should_keep_backup() hardcodes hour // 6
+     - Replace with dynamic calculation from config value
+
+2.5  Delete templates/printable.html
+     - Not referenced by any route, confirmed not needed
+
+2.6  Fix find_free_port() in launch_app.py
+     - Either wire it up or remove the dead function
+
+2.7  Remove redundant initialize_database before_request hook
+     - db.create_all() is already called at startup
+     - The before_request hook that calls it then removes itself is unnecessary
+
+2.8  Extract duplicated patient creation logic
+     - new_patient and duplicate_patient share near-identical form->model mapping
+     - Create _create_patient_from_form(form) helper function
+
+================================================================================
+PHASE 3: SPLIT & CODE QUALITY (P2)
+================================================================================
+
+3.1  Split patient_database.py into modules
+
+     app/config.py:
+       - All app.config values
+       - BACKUP_DIR, BACKUP_INTERVAL, MAX_BACKUPS, PERIODIC_BACKUP_INTERVAL
+       - SECRET_KEY generation
+       - SQLALCHEMY_DATABASE_URI
+
+     app/models.py:
+       - db = SQLAlchemy()
+       - Patient class with all column definitions
+
+     app/forms.py:
+       - PatientForm (FlaskForm subclass)
+       - All field definitions and choices
+
+     app/backup.py:
+       - create_db_backup()
+       - should_keep_backup()
+       - cleanup_old_backups()
+       - BackupManager class to encapsulate _last_backup state
+       - Replace bare except: pass with proper logging
+
+     app/routes.py:
+       - Blueprint with all route handlers
+       - _create_patient_from_form() helper
+       - before_request backup trigger
+       - Docstrings on every route
+
+     app/__init__.py:
+       - create_app(config_class=Config) factory function
+       - Register blueprint
+       - Initialize db, csrf
+       - db.create_all() call
+
+     run.py:
+       - from app import create_app
+       - app = create_app()
+       - app.run(debug=True, port=5001)
+
+3.2  Create templates/base.html
+     - Shared <!DOCTYPE html>, <head>, meta tags
+     - Common <style> block (reference static CSS)
+     - {% block title %}, {% block content %}, {% block scripts %}
+     - Update all templates to use {% extends "base.html" %}
+
+3.3  Create static/css/style.css
+     - Extract all shared styles from templates
+     - Keep only @media print overrides inline where needed
+
+3.4  Create static/js/app.js
+     - Sorting logic from index.html
+     - Dropdown toggle logic
+     - Delete confirmation logic
+     - Remove inline <script> blocks from templates
+
+3.5  Code cleanup in routes
+     - Add docstrings to all route functions
+     - Replace bare except: pass in backup code with logging
+     - Use consistent flash() messages for user feedback
+
+================================================================================
+PHASE 4: DISTRIBUTION & DOCS (P3)
+================================================================================
+
+4.1  Create PyInstaller build script (scripts/build_app.sh)
+     #!/bin/bash
+     pip install pyinstaller
+     pyinstaller --onefile --windowed \
+       --add-data "templates:templates" \
+       --add-data "static:static" \
+       --add-data "instance:instance" \
+       --name "PatientDatabase" \
+       run.py
+
+     Result: dist/PatientDatabase.app -- copy to any Mac, double-click to run
+
+4.2  Move old scripts to scripts/ directory
+     - create_mac_app.sh -> scripts/create_mac_app.sh (add deprecation comment)
+     - create_icon.sh    -> scripts/create_icon.sh (add deprecation comment)
+     - launch_app.py     -> scripts/launch_app.py (add deprecation comment)
+
+4.3  Fix launch_app.py log file handle leak
+     - Wrap log file open in try/finally or with statement
+
+4.4  Update README.md
+     - Add project overview / purpose
+     - Add installation:
+         python3 -m venv venv
+         source venv/bin/activate
+         pip install -r requirements.txt
+     - Add "How to Run":
+         python run.py
+         # Open http://127.0.0.1:5001
+     - Add feature list:
+         * Patient CRUD (create, read, update, delete)
+         * Surgery type tracking
+         * Print individual patient records
+         * Print daily surgery log
+         * Soft delete with trash/restore
+         * Automatic database backups
+     - Keep existing backup documentation
+     - Add distribution section (PyInstaller)
+
+4.5  Update MAC_APP_README.md
+     - Add deprecation notice at top:
+       "NOTE: This approach is deprecated. See scripts/build_app.sh
+        for the recommended PyInstaller method."
+     - Fix port 5000 -> 5001
+
+================================================================================
+EXECUTION ORDER
+================================================================================
+
+Step  Phase  Task   Description                              Effort   Risk
+----  -----  ----   -----------                              ------   ----
+ 1    P0     1.3    Add requirements.txt                     5 min    None
+ 2    P0     1.4    Add .gitignore                           5 min    None
+ 3    P0     1.1    Fix HTML bugs in index.html              10 min   Low
+ 4    P0     1.2    Fix security issues                      15 min   Low
+ 5    P1     2.5    Delete printable.html                    1 min    None
+ 6    P1     2.7    Remove redundant initialize_database     5 min    Low
+ 7    P1     2.1    Fix print_patient error handling         10 min   Low
+ 8    P1     2.2    Fix print_daily_log error handling       10 min   Low
+ 9    P1     2.4    Fix PERIODIC_BACKUP_INTERVAL usage       10 min   Low
+10    P1     2.8    Extract patient creation helper          15 min   Low
+11    P2     3.1    Split patient_database.py into modules   60 min   Medium
+12    P2     3.2    Create base.html template                30 min   Medium
+13    P2     3.3    Extract CSS to static file               20 min   Low
+14    P2     3.4    Extract JS to static file                20 min   Low
+15    P2     3.5    Code cleanup (docstrings, logging)       20 min   Low
+16    P1     2.3    Fix port in MAC_APP_README.md            5 min    None
+17    P1     2.6    Fix/remove find_free_port                5 min    None
+18    P3     4.2    Move old scripts to scripts/             10 min   None
+19    P3     4.3    Fix launch_app.py log leak               10 min   Low
+20    P3     4.1    Create PyInstaller build script          20 min   Low
+21    P3     4.4    Update README.md                         20 min   None
+22    P3     4.5    Update MAC_APP_README.md                 5 min    None
+
+                                              TOTAL:  ~5 hours
+
+================================================================================
+TESTING CHECKLIST (after each phase)
+================================================================================
+
+[ ] Application starts without errors (python run.py)
+[ ] Can create a new patient
+[ ] Can edit an existing patient
+[ ] Can duplicate a patient
+[ ] Can soft-delete a patient (moves to trash)
+[ ] Can restore a patient from trash
+[ ] Can permanently delete a patient from trash
+[ ] Can print a patient record (all surgery types)
+[ ] Can print daily surgery log
+[ ] Sorting works on all columns
+[ ] Backup creates automatically
+[ ] CSRF tokens work on all forms
+[ ] No console errors in browser dev tools
+
+================================================================================
+END OF PLAN
+================================================================================

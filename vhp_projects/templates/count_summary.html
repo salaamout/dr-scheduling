@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Count Summary{% endblock %}
+
+{% block content %}
+    <h1>Count Summary</h1>
+    <p style="color: #666; margin-bottom: 15px;">Number of surgeries per day and type (excludes cancelled patients)</p>
+
+    <a href="{{ url_for('main.index') }}" class="button" style="margin-bottom: 20px; display: inline-block;">Back to Database</a>
+
+    {% if sorted_dates %}
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    {% for stype in sorted_types %}
+                    <th>{{ stype | capitalize }}</th>
+                    {% endfor %}
+                    <th style="background: #e9ecef; font-weight: bold;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in sorted_dates %}
+                <tr>
+                    <td>{{ d.strftime('%Y-%m-%d') }}</td>
+                    {% for stype in sorted_types %}
+                    <td>{{ summary[d][stype] if summary[d][stype] else '' }}</td>
+                    {% endfor %}
+                    <td style="font-weight: bold; background: #f8f9fa;">{{ date_totals[d] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="font-weight: bold; background: #e9ecef;">
+                    <td>Total</td>
+                    {% for stype in sorted_types %}
+                    <td>{{ type_totals[stype] }}</td>
+                    {% endfor %}
+                    <td style="background: #dee2e6;">{{ grand_total }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    {% else %}
+    <p>No surgery data found.</p>
+    {% endif %}
+{% endblock %}

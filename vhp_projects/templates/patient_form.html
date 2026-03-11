@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}{% if edit %}Edit{% elif duplicate %}Duplicate{% else %}New{% endif %} Patient{% endblock %}
+
+{% block content %}
+    <h1>{% if edit %}Edit{% elif duplicate %}Duplicate{% else %}New{% endif %} Patient</h1>
+    <form method="POST" class="patient-form">
+        {{ form.hidden_tag() }}
+        <div style="margin-bottom: 20px;">
+            {{ form.submit(class="save-btn") }}
+            <a href="{{ url_for('main.index', **filters) }}" onclick="return confirm('Warning: Any unsaved changes will be lost. Click Save if you want to keep your changes.');" style="display: inline-block; margin-left: 10px; text-decoration: none; padding: 10px 20px; background: #6c757d; color: white; border-radius: 4px;">Cancel</a>
+        </div>
+        <div class="field">
+            {{ form.surgery_type.label }}
+            {{ form.surgery_type(id="surgery_type_select") }}
+            {% if form.surgery_type.errors %}
+                {% for error in form.surgery_type.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="field">
+            {{ form.surgery_date.label }}
+            {{ form.surgery_date }}
+            {% if form.surgery_date.errors %}
+                {% for error in form.surgery_date.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="field">
+            {{ form.chart_number.label }}
+            {{ form.chart_number }}
+            {% if form.chart_number.errors %}
+                {% for error in form.chart_number.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="field">
+            {{ form.name.label }}
+            {{ form.name }}
+            {% if form.name.errors %}
+                {% for error in form.name.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="field">
+            {{ form.age.label }}
+            {{ form.age }}
+            {% if form.age.errors %}
+                {% for error in form.age.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="field">
+            {{ form.sex.label }}
+            {{ form.sex }}
+            {% if form.sex.errors %}
+                {% for error in form.sex.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="field">
+            {{ form.procedure.label }}
+            <div id="procedure-autofill" style="margin-bottom: 8px; display: flex; gap: 6px; flex-wrap: wrap;"></div>
+            {{ form.procedure(id="procedure_field") }}
+            {% if form.procedure.errors %}
+                {% for error in form.procedure.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="field">
+            <label style="font-weight: bold;">{{ form.eye.label.text }}</label>
+            <div style="display: flex; gap: 15px; margin-top: 5px;">
+                {% for subfield in form.eye %}
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 4px;">
+                    {{ subfield }} {{ subfield.label.text }}
+                </label>
+                {% endfor %}
+            </div>
+            {% if form.eye.errors %}
+                {% for error in form.eye.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="field">
+            {{ form.advocate.label }}
+            {{ form.advocate }}
+        </div>
+        <div class="field">
+            {{ form.community.label }}
+            {{ form.community }}
+        </div>
+        <div class="field">
+            {{ form.number.label }}
+            {{ form.number }}
+        </div>
+        <div class="field">
+            {{ form.notes.label }}
+            {{ form.notes }}
+        </div>
+        <div class="field">
+            <label style="font-weight: bold; display: flex; align-items: center; gap: 8px;">
+                {{ form.cancelled }} {{ form.cancelled.label.text }}
+            </label>
+        </div>
+    </form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Procedure autofill options per surgery type
+    var procedureOptions = {{ procedure_options | tojson }};
+
+    function updateProcedureButtons() {
+        var surgeryType = document.getElementById('surgery_type_select').value;
+        var container = document.getElementById('procedure-autofill');
+        var options = procedureOptions[surgeryType] || [];
+        container.innerHTML = '';
+        options.forEach(function(opt) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = opt;
+            btn.className = 'button';
+            btn.style.cssText = 'padding: 4px 10px; font-size: 0.85em; background: #6c757d;';
+            btn.addEventListener('click', function() {
+                var field = document.getElementById('procedure_field');
+                if (field.value && field.value.trim() !== '') {
+                    field.value = field.value.trim() + ', ' + opt;
+                } else {
+                    field.value = opt;
+                }
+            });
+            container.appendChild(btn);
+        });
+    }
+
+    document.getElementById('surgery_type_select').addEventListener('change', updateProcedureButtons);
+    updateProcedureButtons();
+</script>
+{% endblock %}

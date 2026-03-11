@@ -1,0 +1,12 @@
+instance/
+server.log
+__pycache__/
+*.pyc
+*.pyo
+*.app
+build/
+dist/
+*.spec
+.DS_Store
+venv/
+.env

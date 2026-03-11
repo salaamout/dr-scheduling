@@ -1,0 +1,14 @@
+# Backup database files
+backups/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# SQLite
+*.db-journal
+*.db-wal
+*.db-shm

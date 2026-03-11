@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Trash - Patient Database{% endblock %}
+
+{% block content %}
+    <h1>Trash - Patient Database</h1>
+    <a href="{{ url_for('main.index') }}" class="button" style="margin-bottom: 20px; display: inline-block;">Back to Database</a>
+
+    {% if patients %}
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Surgery Date</th>
+                    <th>Surgery Type</th>
+                    <th>Surgery #</th>
+                    <th>Chart #</th>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Sex</th>
+                    <th>Procedure</th>
+                    <th>Eye</th>
+                    <th>Advocate</th>
+                    <th>Community</th>
+                    <th>Notes</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr>
+                    <td>{{ patient.surgery_date.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ patient.surgery_type }}</td>
+                    <td>{{ patient.number }}</td>
+                    <td>{{ patient.chart_number }}</td>
+                    <td>{{ patient.name }}</td>
+                    <td>{{ patient.age }}</td>
+                    <td>{{ patient.sex }}</td>
+                    <td>{{ patient.procedure }}</td>
+                    <td>{{ patient.eye or '' }}</td>
+                    <td>{{ patient.advocate }}</td>
+                    <td>{{ patient.community }}</td>
+                    <td class="notes-cell" title="{{ patient.notes }}">{{ patient.notes }}</td>
+                    <td class="actions">
+                        <form action="{{ url_for('main.restore_patient', patient_id=patient.id) }}" method="POST" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="button restore-button">Restore</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No deleted patients found.</p>
+    {% endif %}
+{% endblock %}
