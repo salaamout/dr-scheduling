@@ -11,7 +11,7 @@ from database import (
     get_log_entries, get_log_entry, create_log_entry, update_log_entry, delete_log_entry,
     get_dashboard_counts, get_recent_activity, get_patient_logs,
 )
-from export import export_csv, export_pdf, export_all_csv
+from export import export_csv, export_pdf, export_all_zip
 from backup import (
     start_backup_scheduler, create_backup, list_backups,
     find_closest_backup, restore_backup, RESTORE_SLOTS,
@@ -100,6 +100,7 @@ def add_patient():
                     kwargs["community"] = request.form.get("derm_community", "").strip()
                     kwargs["procedure"] = request.form.get("derm_procedure", "").strip()
                     kwargs["derm_date"] = request.form.get("derm_derm_date", "").strip()
+                    kwargs["procedure_count"] = request.form.get("derm_procedure_count", 1, type=int) or 1
                 elif log_cat == "Laser":
                     kwargs["procedure_type"] = request.form.get("laser_procedure_type", "").strip()
                     kwargs["eye"] = request.form.get("laser_eye", "").strip()
@@ -192,6 +193,7 @@ def add_log_entry():
     procedure = request.form.get("procedure", "").strip()
     derm_date = request.form.get("derm_date", "").strip()
     surgery_type = request.form.get("surgery_type", "").strip()
+    procedure_count = request.form.get("procedure_count", 1, type=int) or 1
     redirect_to = request.form.get("redirect_to", "/")
 
     if not patient_id or log_category not in LOG_CATEGORIES:
@@ -200,7 +202,7 @@ def add_log_entry():
 
     create_log_entry(patient_id, log_category, notes, follow_up_date,
                      advocate, community, problem, appointment_timeframe,
-                     procedure_type, eye, laser_date, procedure, derm_date, surgery_type)
+                     procedure_type, eye, laser_date, procedure, derm_date, surgery_type, procedure_count)
     patient = get_patient(patient_id)
     name = patient["full_name"] if patient else "Patient"
     flash(f"'{name}' added to {log_category} log.", "success")
@@ -227,10 +229,11 @@ def edit_log_entry(entry_id):
         procedure = request.form.get("procedure", "").strip()
         derm_date = request.form.get("derm_date", "").strip()
         surgery_type = request.form.get("surgery_type", "").strip()
+        procedure_count = request.form.get("procedure_count", 1, type=int) or 1
 
         update_log_entry(entry_id, notes, follow_up_date,
                          advocate, community, problem, appointment_timeframe,
-                         procedure_type, eye, laser_date, procedure, derm_date, surgery_type)
+                         procedure_type, eye, laser_date, procedure, derm_date, surgery_type, procedure_count)
         flash("Log entry updated.", "success")
         return redirect(url_for("log_view", category=entry["log_category"]))
 
@@ -252,10 +255,7 @@ def remove_log_entry(entry_id):
 
 @app.route("/export/<category>/csv")
 def export_log_csv(category):
-    if category == "all":
-        data = export_all_csv()
-        filename = "all_mission_logs.csv"
-    elif category in LOG_CATEGORIES:
+    if category in LOG_CATEGORIES:
         data = export_csv(category)
         filename = f"{category.lower().replace(' ', '_')}_log.csv"
     else:
@@ -266,6 +266,16 @@ def export_log_csv(category):
         data,
         mimetype="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+
+@app.route("/export/all/zip")
+def export_all_zip_route():
+    data = export_all_zip()
+    return Response(
+        data,
+        mimetype="application/zip",
+        headers={"Content-Disposition": "attachment; filename=mission_logs_export.zip"},
     )
 
 

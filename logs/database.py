@@ -61,6 +61,7 @@ def init_db():
             procedure TEXT DEFAULT '',
             derm_date TEXT DEFAULT '',
             surgery_type TEXT DEFAULT '',
+            procedure_count INTEGER DEFAULT 1,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
@@ -79,6 +80,7 @@ def init_db():
         ("procedure", "TEXT DEFAULT ''"),
         ("derm_date", "TEXT DEFAULT ''"),
         ("surgery_type", "TEXT DEFAULT ''"),
+        ("procedure_count", "INTEGER DEFAULT 1"),
     ]
     for col_name, col_type in migration_columns:
         try:
@@ -186,15 +188,16 @@ def get_log_entry(entry_id):
 
 def create_log_entry(patient_id, log_category, notes="", follow_up_date=None,
                      advocate="", community="", problem="", appointment_timeframe="",
-                     procedure_type="", eye="", laser_date="", procedure="", derm_date="", surgery_type=""):
+                     procedure_type="", eye="", laser_date="", procedure="", derm_date="", surgery_type="",
+                     procedure_count=1):
     """Create a new log entry."""
     conn = get_db()
     cursor = conn.execute(
         """INSERT INTO log_entries (patient_id, log_category, notes, follow_up_date,
-           advocate, community, problem, appointment_timeframe, procedure_type, eye, laser_date, procedure, derm_date, surgery_type)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           advocate, community, problem, appointment_timeframe, procedure_type, eye, laser_date, procedure, derm_date, surgery_type, procedure_count)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (patient_id, log_category, notes, follow_up_date,
-         advocate, community, problem, appointment_timeframe, procedure_type, eye, laser_date, procedure, derm_date, surgery_type),
+         advocate, community, problem, appointment_timeframe, procedure_type, eye, laser_date, procedure, derm_date, surgery_type, procedure_count),
     )
     conn.commit()
     entry_id = cursor.lastrowid
@@ -204,17 +207,19 @@ def create_log_entry(patient_id, log_category, notes="", follow_up_date=None,
 
 def update_log_entry(entry_id, notes="", follow_up_date=None,
                      advocate="", community="", problem="", appointment_timeframe="",
-                     procedure_type="", eye="", laser_date="", procedure="", derm_date="", surgery_type=""):
+                     procedure_type="", eye="", laser_date="", procedure="", derm_date="", surgery_type="",
+                     procedure_count=1):
     """Update an existing log entry."""
     conn = get_db()
     conn.execute(
         """UPDATE log_entries SET notes = ?, follow_up_date = ?,
            advocate = ?, community = ?, problem = ?, appointment_timeframe = ?,
            procedure_type = ?, eye = ?, laser_date = ?, procedure = ?, derm_date = ?, surgery_type = ?,
+           procedure_count = ?,
            updated_at = CURRENT_TIMESTAMP WHERE id = ?""",
         (notes, follow_up_date,
          advocate, community, problem, appointment_timeframe,
-         procedure_type, eye, laser_date, procedure, derm_date, surgery_type, entry_id),
+         procedure_type, eye, laser_date, procedure, derm_date, surgery_type, procedure_count, entry_id),
     )
     conn.commit()
     conn.close()
@@ -231,7 +236,7 @@ def delete_log_entry(entry_id):
 # --- Dashboard helpers ---
 
 def get_dashboard_counts():
-    """Get patient count per log category."""
+    """Get patient count per log category, plus laser YAG/SLT and derm procedure counts."""
     conn = get_db()
     counts = {}
     for cat in LOG_CATEGORIES:
@@ -240,6 +245,30 @@ def get_dashboard_counts():
             (cat,),
         ).fetchone()
         counts[cat] = row["cnt"]
+
+    # Laser: separate YAG and SLT counts (count OU as 2 eyes)
+    for proc_type in ["YAG", "SLT"]:
+        row = conn.execute(
+            """SELECT COALESCE(SUM(CASE WHEN eye = 'OU' THEN 2 ELSE 1 END), 0) as cnt
+               FROM log_entries WHERE log_category = 'Laser' AND procedure_type = ?""",
+            (proc_type,),
+        ).fetchone()
+        counts[f"Laser_{proc_type}"] = row["cnt"]
+
+    # Laser total (eye-aware)
+    row = conn.execute(
+        """SELECT COALESCE(SUM(CASE WHEN eye = 'OU' THEN 2 ELSE 1 END), 0) as cnt
+           FROM log_entries WHERE log_category = 'Laser'""",
+    ).fetchone()
+    counts["Laser_total_eyes"] = row["cnt"]
+
+    # Derm: total procedures (sum of procedure_count)
+    row = conn.execute(
+        """SELECT COALESCE(SUM(procedure_count), 0) as cnt
+           FROM log_entries WHERE log_category = 'Dermatology'""",
+    ).fetchone()
+    counts["Derm_procedures"] = row["cnt"]
+
     conn.close()
     return counts
 

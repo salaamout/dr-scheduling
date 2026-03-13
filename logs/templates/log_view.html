@@ -60,6 +60,7 @@
                     <th class="px-4 py-3 font-medium">Advocate</th>
                     <th class="px-4 py-3 font-medium">Community</th>
                     <th class="px-4 py-3 font-medium">Procedure</th>
+                    <th class="px-4 py-3 font-medium"># Procedures</th>
                     <th class="px-4 py-3 font-medium">Date</th>
                     {% endif %}
                     <th class="px-4 py-3 font-medium">Notes</th>
@@ -91,6 +92,7 @@
                     <td class="px-4 py-3 text-gray-600">{{ entry.advocate or '—' }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ entry.community or '—' }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ entry.procedure or '—' }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ entry.procedure_count or 1 }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ entry.derm_date or '—' }}</td>
                     {% endif %}
                     <td class="px-4 py-3 text-gray-600 max-w-xs truncate">{{ entry.notes or '—' }}</td>
@@ -155,25 +157,49 @@
             </div>
             <div class="mb-3">
                 <label class="block text-xs text-gray-500 mb-1">Surgery Type (optional)</label>
-                <input type="text" name="surgery_type"
-                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                <select name="surgery_type"
+                        class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                    <option value="">Select...</option>
+                    <option value="Cataract">Cataract</option>
+                    <option value="Pterygium">Pterygium</option>
+                    <option value="Strabismus">Strabismus</option>
+                    <option value="Plastics">Plastics</option>
+                    <option value="Dermatology">Dermatology</option>
+                </select>
             </div>
             {% elif category == 'Guzman Referrals' %}
             <div class="mb-3">
                 <label class="block text-xs text-gray-500 mb-1">Problem (optional)</label>
-                <input type="text" name="problem"
-                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                <select name="problem"
+                        class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                    <option value="">Select...</option>
+                    <option value="Diabetic Retinopathy">Diabetic Retinopathy</option>
+                    <option value="Keratokonus">Keratokonus</option>
+                    <option value="Cataract Surgery Follow Up">Cataract Surgery Follow Up</option>
+                    <option value="Vitreous Hemmorage">Vitreous Hemmorage</option>
+                </select>
             </div>
             <div class="mb-3">
                 <label class="block text-xs text-gray-500 mb-1">Appointment Timeframe (optional)</label>
-                <input type="text" name="appointment_timeframe"
-                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                <select name="appointment_timeframe"
+                        class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                    <option value="">Select...</option>
+                    <option value="1 month">1 month</option>
+                    <option value="3 months">3 months</option>
+                    <option value="6 months">6 months</option>
+                    <option value="1 year">1 year</option>
+                    <option value="Urgent">Urgent</option>
+                </select>
             </div>
             {% elif category == 'Laser' %}
             <div class="mb-3">
                 <label class="block text-xs text-gray-500 mb-1">Procedure Type (optional)</label>
-                <input type="text" name="procedure_type"
-                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                <select name="procedure_type"
+                        class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                    <option value="">Select...</option>
+                    <option value="YAG">YAG</option>
+                    <option value="SLT">SLT</option>
+                </select>
             </div>
             <div class="mb-3">
                 <label class="block text-xs text-gray-500 mb-1">Eye (optional)</label>
@@ -202,7 +228,18 @@
             </div>
             <div class="mb-3">
                 <label class="block text-xs text-gray-500 mb-1">Procedure (optional)</label>
-                <input type="text" name="procedure"
+                <select name="procedure"
+                        class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                    <option value="">Select...</option>
+                    <option value="Injection">Injection</option>
+                    <option value="Removal">Removal</option>
+                    <option value="Shave Removal">Shave Removal</option>
+                    <option value="Biopsy">Biopsy</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="block text-xs text-gray-500 mb-1"># of Procedures</label>
+                <input type="number" name="procedure_count" value="1" min="1"
                        class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
             </div>
             <div class="mb-3">
@@ -265,8 +302,15 @@
                     </div>
                     <div class="mb-2">
                         <label class="block text-xs text-gray-500 mb-1">Surgery Type</label>
-                        <input type="text" name="priority_surgery_type"
-                               class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                        <select name="priority_surgery_type"
+                                class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                            <option value="">Select...</option>
+                            <option value="Cataract">Cataract</option>
+                            <option value="Pterygium">Pterygium</option>
+                            <option value="Strabismus">Strabismus</option>
+                            <option value="Plastics">Plastics</option>
+                            <option value="Dermatology">Dermatology</option>
+                        </select>
                     </div>
                 </div>
 
@@ -284,7 +328,18 @@
                     </div>
                     <div class="mb-2">
                         <label class="block text-xs text-gray-500 mb-1">Procedure</label>
-                        <input type="text" name="derm_procedure"
+                        <select name="derm_procedure"
+                                class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                            <option value="">Select...</option>
+                            <option value="Injection">Injection</option>
+                            <option value="Removal">Removal</option>
+                            <option value="Shave Removal">Shave Removal</option>
+                            <option value="Biopsy">Biopsy</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-xs text-gray-500 mb-1"># of Procedures</label>
+                        <input type="number" name="derm_procedure_count" value="1" min="1"
                                class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
                     </div>
                     <div class="mb-2">
@@ -298,8 +353,12 @@
                     <h4 class="text-xs font-semibold text-blue-700 mb-2">Laser Fields</h4>
                     <div class="mb-2">
                         <label class="block text-xs text-gray-500 mb-1">Procedure Type</label>
-                        <input type="text" name="laser_procedure_type"
-                               class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                        <select name="laser_procedure_type"
+                                class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                            <option value="">Select...</option>
+                            <option value="YAG">YAG</option>
+                            <option value="SLT">SLT</option>
+                        </select>
                     </div>
                     <div class="mb-2">
                         <label class="block text-xs text-gray-500 mb-1">Eye</label>
@@ -321,13 +380,26 @@
                     <h4 class="text-xs font-semibold text-blue-700 mb-2">Guzman Referrals Fields</h4>
                     <div class="mb-2">
                         <label class="block text-xs text-gray-500 mb-1">Problem</label>
-                        <input type="text" name="guzman_problem"
-                               class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                        <select name="guzman_problem"
+                                class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                            <option value="">Select...</option>
+                            <option value="Diabetic Retinopathy">Diabetic Retinopathy</option>
+                            <option value="Keratokonus">Keratokonus</option>
+                            <option value="Cataract Surgery Follow Up">Cataract Surgery Follow Up</option>
+                            <option value="Vitreous Hemmorage">Vitreous Hemmorage</option>
+                        </select>
                     </div>
                     <div class="mb-2">
                         <label class="block text-xs text-gray-500 mb-1">Appointment Timeframe</label>
-                        <input type="text" name="guzman_appointment_timeframe"
-                               class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                        <select name="guzman_appointment_timeframe"
+                                class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                            <option value="">Select...</option>
+                            <option value="1 month">1 month</option>
+                            <option value="3 months">3 months</option>
+                            <option value="6 months">6 months</option>
+                            <option value="1 year">1 year</option>
+                            <option value="Urgent">Urgent</option>
+                        </select>
                     </div>
                 </div>
 

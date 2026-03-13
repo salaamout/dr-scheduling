@@ -1,9 +1,10 @@
 """
-Export functions for CSV and PDF generation.
+Export functions for CSV, PDF, and ZIP generation.
 """
 
 import csv
 import io
+import zipfile
 from fpdf import FPDF
 from database import get_log_entries, LOG_CATEGORIES
 
@@ -17,7 +18,7 @@ def export_csv(log_category):
     # Base headers
     base = ["Full Name", "Chart ID", "Date of Birth"]
 
-    # Category-specific headers
+    # Category-specific headers (no follow-up date; notes only for Darlene)
     if log_category == "Priority Patients":
         extra = ["Advocate", "Community", "Surgery Type"]
     elif log_category == "Guzman Referrals":
@@ -25,11 +26,13 @@ def export_csv(log_category):
     elif log_category == "Laser":
         extra = ["Procedure Type", "Eye", "Date"]
     elif log_category == "Dermatology":
-        extra = ["Advocate", "Community", "Procedure", "Date"]
+        extra = ["Advocate", "Community", "Procedure", "# Procedures", "Date"]
+    elif log_category == "Darlene Prosthetics":
+        extra = ["Notes"]
     else:
         extra = []
 
-    writer.writerow(base + extra + ["Notes", "Follow-up Date"])
+    writer.writerow(base + extra)
 
     for entry in entries:
         base_data = [
@@ -45,11 +48,17 @@ def export_csv(log_category):
         elif log_category == "Laser":
             extra_data = [entry["procedure_type"] or "", entry["eye"] or "", entry["laser_date"] or ""]
         elif log_category == "Dermatology":
-            extra_data = [entry["advocate"] or "", entry["community"] or "", entry["procedure"] or "", entry["derm_date"] or ""]
+            extra_data = [
+                entry["advocate"] or "", entry["community"] or "",
+                entry["procedure"] or "", entry["procedure_count"] or 1,
+                entry["derm_date"] or "",
+            ]
+        elif log_category == "Darlene Prosthetics":
+            extra_data = [entry["notes"] or ""]
         else:
             extra_data = []
 
-        writer.writerow(base_data + extra_data + [entry["notes"], entry["follow_up_date"] or ""])
+        writer.writerow(base_data + extra_data)
 
     return output.getvalue()
 
@@ -67,22 +76,25 @@ def export_pdf(log_category):
     pdf.cell(0, 12, f"Medical Mission Log: {log_category}", new_x="LMARGIN", new_y="NEXT", align="C")
     pdf.ln(4)
 
-    # Category-specific column setup
+    # Category-specific column setup (no follow-up date; notes only for Darlene)
     if log_category == "Priority Patients":
-        headers = ["Full Name", "Chart ID", "DOB", "Advocate", "Community", "Surgery Type", "Notes", "Follow-up"]
-        col_widths = [48, 28, 28, 38, 38, 38, 45, 25]
+        headers = ["Full Name", "Chart ID", "DOB", "Advocate", "Community", "Surgery Type"]
+        col_widths = [55, 35, 35, 45, 45, 50]
     elif log_category == "Guzman Referrals":
-        headers = ["Full Name", "Chart ID", "DOB", "Problem", "Appt Timeframe", "Notes", "Follow-up"]
-        col_widths = [50, 30, 30, 50, 42, 50, 28]
+        headers = ["Full Name", "Chart ID", "DOB", "Problem", "Appt Timeframe"]
+        col_widths = [60, 40, 40, 65, 60]
     elif log_category == "Laser":
-        headers = ["Full Name", "Chart ID", "DOB", "Procedure", "Eye", "Date", "Notes", "Follow-up"]
-        col_widths = [48, 30, 30, 42, 22, 30, 50, 28]
+        headers = ["Full Name", "Chart ID", "DOB", "Procedure", "Eye", "Date"]
+        col_widths = [55, 35, 35, 50, 30, 40]
     elif log_category == "Dermatology":
-        headers = ["Full Name", "Chart ID", "DOB", "Advocate", "Community", "Procedure", "Date", "Notes"]
-        col_widths = [45, 28, 28, 35, 35, 35, 30, 45]
+        headers = ["Full Name", "Chart ID", "DOB", "Advocate", "Community", "Procedure", "#", "Date"]
+        col_widths = [45, 28, 28, 35, 35, 35, 16, 30]
+    elif log_category == "Darlene Prosthetics":
+        headers = ["Full Name", "Chart ID", "DOB", "Notes"]
+        col_widths = [65, 40, 40, 120]
     else:
-        headers = ["Full Name", "Chart ID", "DOB", "Notes", "Follow-up"]
-        col_widths = [65, 40, 40, 90, 40]
+        headers = ["Full Name", "Chart ID", "DOB"]
+        col_widths = [90, 60, 60]
 
     # Table header
     pdf.set_font("Helvetica", "B", 9)
@@ -102,29 +114,28 @@ def export_pdf(log_category):
             row_data = base + [
                 (entry["advocate"] or "")[:20], (entry["community"] or "")[:20],
                 (entry["surgery_type"] or "")[:20],
-                (entry["notes"] or "")[:25], entry["follow_up_date"] or "",
             ]
         elif log_category == "Guzman Referrals":
             row_data = base + [
                 (entry["problem"] or "")[:25], (entry["appointment_timeframe"] or "")[:20],
-                (entry["notes"] or "")[:25], entry["follow_up_date"] or "",
             ]
         elif log_category == "Laser":
             row_data = base + [
                 (entry["procedure_type"] or "")[:20], entry["eye"] or "",
-                entry["laser_date"] or "", (entry["notes"] or "")[:25],
-                entry["follow_up_date"] or "",
+                entry["laser_date"] or "",
             ]
         elif log_category == "Dermatology":
             row_data = base + [
                 (entry["advocate"] or "")[:18], (entry["community"] or "")[:18],
-                (entry["procedure"] or "")[:18], entry["derm_date"] or "",
-                (entry["notes"] or "")[:22],
+                (entry["procedure"] or "")[:18], str(entry["procedure_count"] or 1),
+                entry["derm_date"] or "",
+            ]
+        elif log_category == "Darlene Prosthetics":
+            row_data = base + [
+                (entry["notes"] or "")[:55],
             ]
         else:
-            row_data = base + [
-                (entry["notes"] or "")[:40], entry["follow_up_date"] or "",
-            ]
+            row_data = base
 
         for i, value in enumerate(row_data):
             pdf.cell(col_widths[i], 7, str(value), border=1)
@@ -138,38 +149,13 @@ def export_pdf(log_category):
     return pdf.output()
 
 
-def export_all_csv():
-    """Export all log categories to a single CSV. Returns a string."""
-    output = io.StringIO()
-    writer = csv.writer(output)
-
-    writer.writerow([
-        "Log Category", "Full Name", "Chart ID", "Date of Birth",
-        "Advocate", "Community",
-        "Problem", "Appointment Timeframe", "Procedure Type", "Eye", "Laser Date",
-        "Procedure", "Derm Date", "Surgery Type", "Notes", "Follow-up Date"
-    ])
-
-    for category in LOG_CATEGORIES:
-        entries = get_log_entries(category)
-        for entry in entries:
-            writer.writerow([
-                category,
-                entry["full_name"],
-                entry["chart_id"],
-                entry["date_of_birth"],
-                entry["advocate"] or "",
-                entry["community"] or "",
-                entry["problem"] or "",
-                entry["appointment_timeframe"] or "",
-                entry["procedure_type"] or "",
-                entry["eye"] or "",
-                entry["laser_date"] or "",
-                entry["procedure"] or "",
-                entry["derm_date"] or "",
-                entry["surgery_type"] or "",
-                entry["notes"],
-                entry["follow_up_date"] or "",
-            ])
-
-    return output.getvalue()
+def export_all_zip():
+    """Export all log categories as separate CSV files in a ZIP. Returns bytes."""
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for category in LOG_CATEGORIES:
+            csv_data = export_csv(category)
+            filename = f"{category.lower().replace(' ', '_')}_log.csv"
+            zf.writestr(filename, csv_data)
+    zip_buffer.seek(0)
+    return zip_buffer.getvalue()

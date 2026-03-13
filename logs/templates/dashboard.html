@@ -11,12 +11,29 @@
 </div>
 
 <!-- Log Category Cards -->
-<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
     {% for cat in categories %}
+    {% if cat == 'Laser' %}
+    <a href="/log/{{ cat }}" class="card bg-white rounded-xl p-5 shadow-sm border border-gray-100 text-center">
+        <div class="text-3xl font-bold text-blue-600">{{ counts.get('Laser_total_eyes', 0) }}</div>
+        <div class="text-sm text-gray-600 mt-1">Laser (eyes)</div>
+        <div class="flex justify-center gap-3 mt-2 text-xs text-gray-500">
+            <span>YAG: <strong class="text-blue-600">{{ counts.get('Laser_YAG', 0) }}</strong></span>
+            <span>SLT: <strong class="text-blue-600">{{ counts.get('Laser_SLT', 0) }}</strong></span>
+        </div>
+    </a>
+    {% elif cat == 'Dermatology' %}
+    <a href="/log/{{ cat }}" class="card bg-white rounded-xl p-5 shadow-sm border border-gray-100 text-center">
+        <div class="text-3xl font-bold text-blue-600">{{ counts.get(cat, 0) }}</div>
+        <div class="text-sm text-gray-600 mt-1">{{ cat }}</div>
+        <div class="text-xs text-gray-500 mt-2">Procedures: <strong class="text-blue-600">{{ counts.get('Derm_procedures', 0) }}</strong></div>
+    </a>
+    {% else %}
     <a href="/log/{{ cat }}" class="card bg-white rounded-xl p-5 shadow-sm border border-gray-100 text-center">
         <div class="text-3xl font-bold text-blue-600">{{ counts.get(cat, 0) }}</div>
         <div class="text-sm text-gray-600 mt-1">{{ cat }}</div>
     </a>
+    {% endif %}
     {% endfor %}
 </div>
 
@@ -74,8 +91,8 @@
 <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 mb-8">
     <h2 class="text-lg font-semibold text-gray-700 mb-3">Export</h2>
     <div class="flex gap-3">
-        <a href="/export/all/csv" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 text-sm">
-            📄 Export All Logs (CSV)
+        <a href="/export/all/zip" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 text-sm">
+            � Export All Logs (ZIP)
         </a>
     </div>
 </div>
@@ -187,8 +204,15 @@
                 </div>
                 <div class="mb-2">
                     <label class="block text-xs text-gray-500 mb-1">Surgery Type</label>
-                    <input type="text" name="priority_surgery_type"
-                           class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                    <select name="priority_surgery_type"
+                            class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                        <option value="">Select...</option>
+                        <option value="Cataract">Cataract</option>
+                        <option value="Pterygium">Pterygium</option>
+                        <option value="Strabismus">Strabismus</option>
+                        <option value="Plastics">Plastics</option>
+                        <option value="Dermatology">Dermatology</option>
+                    </select>
                 </div>
             </div>
 
@@ -206,7 +230,18 @@
                 </div>
                 <div class="mb-2">
                     <label class="block text-xs text-gray-500 mb-1">Procedure</label>
-                    <input type="text" name="derm_procedure"
+                    <select name="derm_procedure"
+                            class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                        <option value="">Select...</option>
+                        <option value="Injection">Injection</option>
+                        <option value="Removal">Removal</option>
+                        <option value="Shave Removal">Shave Removal</option>
+                        <option value="Biopsy">Biopsy</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-500 mb-1"># of Procedures</label>
+                    <input type="number" name="derm_procedure_count" value="1" min="1"
                            class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
                 </div>
                 <div class="mb-2">
@@ -220,8 +255,12 @@
                 <h4 class="text-sm font-semibold text-blue-700 mb-2">Laser Fields</h4>
                 <div class="mb-2">
                     <label class="block text-xs text-gray-500 mb-1">Procedure Type</label>
-                    <input type="text" name="laser_procedure_type"
-                           class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                    <select name="laser_procedure_type"
+                            class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                        <option value="">Select...</option>
+                        <option value="YAG">YAG</option>
+                        <option value="SLT">SLT</option>
+                    </select>
                 </div>
                 <div class="mb-2">
                     <label class="block text-xs text-gray-500 mb-1">Eye</label>
@@ -243,13 +282,26 @@
                 <h4 class="text-sm font-semibold text-blue-700 mb-2">Guzman Referrals Fields</h4>
                 <div class="mb-2">
                     <label class="block text-xs text-gray-500 mb-1">Problem</label>
-                    <input type="text" name="guzman_problem"
-                           class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                    <select name="guzman_problem"
+                            class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                        <option value="">Select...</option>
+                        <option value="Diabetic Retinopathy">Diabetic Retinopathy</option>
+                        <option value="Keratokonus">Keratokonus</option>
+                        <option value="Cataract Surgery Follow Up">Cataract Surgery Follow Up</option>
+                        <option value="Vitreous Hemmorage">Vitreous Hemmorage</option>
+                    </select>
                 </div>
                 <div class="mb-2">
                     <label class="block text-xs text-gray-500 mb-1">Appointment Timeframe</label>
-                    <input type="text" name="guzman_appointment_timeframe"
-                           class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                    <select name="guzman_appointment_timeframe"
+                            class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                        <option value="">Select...</option>
+                        <option value="1 month">1 month</option>
+                        <option value="3 months">3 months</option>
+                        <option value="6 months">6 months</option>
+                        <option value="1 year">1 year</option>
+                        <option value="Urgent">Urgent</option>
+                    </select>
                 </div>
             </div>
 
@@ -263,10 +315,6 @@
             </div>
 
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="document.getElementById('addPatientModal').classList.remove('active')"
-                        class="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-sm">
-                    Cancel
-                </button>
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium">
                     Add Patient
                 </button>
