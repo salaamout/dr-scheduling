@@ -3,56 +3,83 @@
 {% block title %}Trash - Patient Database{% endblock %}
 
 {% block content %}
-    <h1>Trash - Patient Database</h1>
-    <a href="{{ url_for('main.index') }}" class="button" style="margin-bottom: 20px; display: inline-block;">Back to Database</a>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Trash</h1>
+        <a href="{{ url_for('main.index') }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 text-sm font-medium">
+            ← Back to Patients
+        </a>
+    </div>
 
     {% if patients %}
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Surgery Date</th>
-                    <th>Surgery Type</th>
-                    <th>Surgery #</th>
-                    <th>Chart #</th>
-                    <th>Name</th>
-                    <th>Age</th>
-                    <th>Sex</th>
-                    <th>Procedure</th>
-                    <th>Eye</th>
-                    <th>Advocate</th>
-                    <th>Community</th>
-                    <th>Notes</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for patient in patients %}
-                <tr>
-                    <td>{{ patient.surgery_date.strftime('%Y-%m-%d') }}</td>
-                    <td>{{ patient.surgery_type }}</td>
-                    <td>{{ patient.number }}</td>
-                    <td>{{ patient.chart_number }}</td>
-                    <td>{{ patient.name }}</td>
-                    <td>{{ patient.age }}</td>
-                    <td>{{ patient.sex }}</td>
-                    <td>{{ patient.procedure }}</td>
-                    <td>{{ patient.eye or '' }}</td>
-                    <td>{{ patient.advocate }}</td>
-                    <td>{{ patient.community }}</td>
-                    <td class="notes-cell" title="{{ patient.notes }}">{{ patient.notes }}</td>
-                    <td class="actions">
-                        <form action="{{ url_for('main.restore_patient', patient_id=patient.id) }}" method="POST" style="display: inline;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="button restore-button">Restore</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="table-container">
+            <table>
+                <colgroup>
+                    <col style="width: 8%;">   <!-- Surgery Date -->
+                    <col style="width: 7%;">   <!-- Surgery Type -->
+                    <col style="width: 4%;">   <!-- Surgery # -->
+                    <col style="width: 5%;">   <!-- Chart # -->
+                    <col style="width: 14%;">  <!-- Name -->
+                    <col style="width: 4%;">   <!-- Age -->
+                    <col style="width: 4%;">   <!-- Sex -->
+                    <col style="width: 18%;">  <!-- Procedure -->
+                    <col style="width: 4%;">   <!-- Eye -->
+                    <col style="width: 7%;">   <!-- Advocate -->
+                    <col style="width: 7%;">   <!-- Community -->
+                    <col style="width: 10%;">  <!-- Notes -->
+                    <col style="width: 8%;">   <!-- Actions -->
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>Surgery Date</th>
+                        <th>Surgery Type</th>
+                        <th>Surgery #</th>
+                        <th>Chart #</th>
+                        <th>Name</th>
+                        <th>Age</th>
+                        <th>Sex</th>
+                        <th>Procedure</th>
+                        <th>Eye</th>
+                        <th>Advocate</th>
+                        <th>Community</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for patient in patients %}
+                    <tr class="hover:bg-blue-50">
+                        <td class="text-gray-600">{{ patient.surgery_date.strftime('%Y-%m-%d') }}</td>
+                        <td class="text-gray-600">{{ patient.surgery_type }}</td>
+                        <td class="text-gray-600">{{ patient.number }}</td>
+                        <td class="text-gray-600">{{ patient.chart_number }}</td>
+                        <td class="font-medium text-gray-800 wrap-cell">{{ patient.name }}</td>
+                        <td class="text-gray-600">{{ patient.age }}</td>
+                        <td class="text-gray-600">{{ patient.sex }}</td>
+                        <td class="text-gray-600 wrap-cell">{{ patient.procedure }}</td>
+                        <td class="text-gray-600">{{ patient.eye or '' }}</td>
+                        <td class="text-gray-600">{{ patient.advocate }}</td>
+                        <td class="text-gray-600">{{ patient.community }}</td>
+                        <td class="notes-cell wrap-cell" title="{{ patient.notes }}">{{ patient.notes }}</td>
+                        <td>
+                            <form action="{{ url_for('main.restore_patient', patient_id=patient.id) }}" method="POST" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 text-xs font-medium">Restore</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-4 py-3 text-xs text-gray-400 border-t">
+            {{ patients|length }} deleted patient{{ 's' if patients|length != 1 else '' }}
+        </div>
     </div>
     {% else %}
-    <p>No deleted patients found.</p>
+    <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-100 text-center text-gray-400">
+        <p class="text-lg mb-2">No deleted patients found.</p>
+        <p class="text-sm">Deleted patients will appear here.</p>
+    </div>
     {% endif %}
 {% endblock %}

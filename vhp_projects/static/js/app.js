@@ -22,55 +22,74 @@ function confirmDelete(form, patientName) {
 }
 
 /**
- * Toggle a print dropdown menu and close any other open menus.
+ * Toggle a print dropdown menu using a portal approach.
+ * The menu is cloned and appended to <body> with fixed positioning
+ * to avoid overflow/clipping issues inside the table.
  */
-function togglePrintMenu(patientId) {
-    const menu = document.getElementById(`printMenu${patientId}`);
-    const dropdowns = document.getElementsByClassName('dropdown-content');
+var activePortal = null;
 
-    // Close all other dropdowns
-    for (const dropdown of dropdowns) {
-        if (dropdown !== menu && dropdown.style.display === 'block') {
-            dropdown.style.display = 'none';
-        }
-    }
-
-    // Toggle the clicked dropdown
-    if (menu.style.display === 'block') {
-        menu.style.display = 'none';
-        menu.style.top = '';
-        menu.style.bottom = '';
-    } else {
-        const button = menu.previousElementSibling;
-        const buttonRect = button.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        const spaceBelow = viewportHeight - buttonRect.bottom;
-        const menuHeight = 120;
-        const inBottomThird = buttonRect.bottom > (viewportHeight * 0.67);
-
-        if (spaceBelow < menuHeight || inBottomThird) {
-            menu.style.bottom = '100%';
-            menu.style.top = 'auto';
-        } else {
-            menu.style.top = '100%';
-            menu.style.bottom = 'auto';
-        }
-
-        menu.style.display = 'block';
+function closePortal() {
+    if (activePortal) {
+        activePortal.remove();
+        activePortal = null;
     }
 }
 
-// Close all dropdowns when clicking outside
+function togglePrintMenu(patientId) {
+    var menu = document.getElementById('printMenu' + patientId);
+    var button = menu.previousElementSibling;
+
+    // If portal is already open for this menu, close it
+    if (activePortal && activePortal.dataset.forPatient === String(patientId)) {
+        closePortal();
+        return;
+    }
+
+    // Close any existing portal
+    closePortal();
+
+    // Create portal: clone the dropdown content and append to body
+    var portal = document.createElement('div');
+    portal.className = 'dropdown-portal';
+    portal.dataset.forPatient = String(patientId);
+
+    // Copy the dropdown items into the portal
+    var items = menu.querySelectorAll('.dropdown-item');
+    for (var i = 0; i < items.length; i++) {
+        var link = items[i].cloneNode(true);
+        portal.appendChild(link);
+    }
+
+    document.body.appendChild(portal);
+    activePortal = portal;
+
+    // Position relative to the button
+    var btnRect = button.getBoundingClientRect();
+    var portalHeight = portal.offsetHeight;
+    var viewportHeight = window.innerHeight;
+    var spaceBelow = viewportHeight - btnRect.bottom;
+
+    portal.style.left = btnRect.left + 'px';
+
+    if (spaceBelow < portalHeight + 8) {
+        // Not enough room below — show above
+        portal.style.top = (btnRect.top - portalHeight - 2) + 'px';
+    } else {
+        // Show below
+        portal.style.top = (btnRect.bottom + 2) + 'px';
+    }
+}
+
+// Close portal when clicking outside
 window.addEventListener('click', function (event) {
-    if (!event.target.matches('.button')) {
-        const dropdowns = document.getElementsByClassName('dropdown-content');
-        for (const dropdown of dropdowns) {
-            if (dropdown.style.display === 'block') {
-                dropdown.style.display = 'none';
-            }
-        }
+    if (!event.target.matches('.button') && !event.target.closest('.dropdown-portal')) {
+        closePortal();
     }
 });
+
+// Close portal on scroll/resize so it doesn't float in the wrong spot
+window.addEventListener('scroll', closePortal, true);
+window.addEventListener('resize', closePortal);
 
 /**
  * Initialize column-header sorting on the patient table.

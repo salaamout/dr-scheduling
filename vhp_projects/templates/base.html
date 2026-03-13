@@ -1,25 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Patient Database{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_styles %}{% endblock %}
 </head>
-<body>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <div class="flash-messages">
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
+<body class="min-h-screen bg-gray-50">
+
+    <!-- Navigation -->
+    <nav class="bg-blue-800 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <a href="{{ url_for('main.index') }}" class="text-xl font-bold flex items-center gap-2">
+                    🏥 Patient Database
+                </a>
+            </div>
+            <!-- Tab navigation -->
+            <div class="flex gap-1 pb-1 overflow-x-auto text-sm">
+                <a href="{{ url_for('main.index') }}"
+                   class="nav-link px-3 py-2 rounded-t-lg {% if request.endpoint == 'main.index' %}active{% endif %}">
+                    Patients
+                </a>
+                <a href="{{ url_for('main.count_summary') }}"
+                   class="nav-link px-3 py-2 rounded-t-lg {% if request.endpoint == 'main.count_summary' %}active{% endif %}">
+                    Count Summary
+                </a>
+                <a href="{{ url_for('main.trash') }}"
+                   class="nav-link px-3 py-2 rounded-t-lg {% if request.endpoint == 'main.trash' %}active{% endif %}">
+                    Trash
+                </a>
+                <a href="{{ url_for('main.backups_page') }}"
+                   class="nav-link px-3 py-2 rounded-t-lg {% if request.endpoint == 'main.backups_page' %}active{% endif %}">
+                    🔒 Backups
+                </a>
+            </div>
         </div>
-        {% endif %}
+    </nav>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 mt-4">
+        {% for category, message in messages %}
+        <div class="p-3 rounded-lg mb-2 text-sm
+            {% if category == 'error' %}bg-red-100 text-red-800 border border-red-200
+            {% elif category == 'success' %}bg-green-100 text-green-800 border border-green-200
+            {% else %}bg-blue-100 text-blue-800 border border-blue-200{% endif %}"
+            onclick="this.remove()" style="cursor: pointer;">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
     {% endwith %}
 
-    {% block content %}{% endblock %}
+    <!-- Main content -->
+    <main class="max-w-full mx-auto px-4 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center text-gray-400 text-xs py-4 mt-8">
+        VHP Patient Database &copy; 2026
+    </footer>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     {% block scripts %}{% endblock %}

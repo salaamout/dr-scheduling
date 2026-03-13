@@ -60,10 +60,11 @@ vhp_projects/
 │   ├── patients.db        # SQLite database
 │   └── backups/           # Automatic backups
 ├── scripts/
-│   ├── build_app.sh       # PyInstaller build
-│   ├── create_mac_app.sh  # (deprecated)
-│   ├── create_icon.sh     # (deprecated)
-│   └── launch_app.py      # (deprecated)
+│   ├── build_app.sh              # PyInstaller build
+│   ├── setup_laserband_paper.sh  # Custom paper size setup
+│   ├── create_mac_app.sh         # (deprecated)
+│   ├── create_icon.sh            # (deprecated)
+│   └── launch_app.py             # (deprecated)
 ├── run.py                 # Entry point
 ├── requirements.txt
 └── .gitignore
@@ -78,6 +79,24 @@ Build a standalone Mac application with PyInstaller:
 ```
 
 This creates `dist/PatientDatabase.app` — copy it to any Mac and double-click to run.
+
+## New Computer Setup
+
+After copying the app to a new Mac, run the laser band paper size setup:
+
+```bash
+# Set up the custom 5.5" x 11" paper size for laser band wristbands
+bash scripts/setup_laserband_paper.sh
+```
+
+This creates a "Laser Band 5.5x11" entry in macOS's custom paper sizes. Then when printing:
+
+1. Click **Print Laserband** on a patient record (or press ⌘P)
+2. In the print dialog, set **Paper Size** → **Laser Band 5.5x11**
+3. Set **Orientation** to **Landscape**
+4. Print
+
+> 💡 This only needs to be run **once per Mac**. The paper size persists across reboots.
 
 ## Database Backup System
 

@@ -2,21 +2,25 @@
 {% block title %}Backup & Restore — Patient Database{% endblock %}
 
 {% block content %}
-    <h1>🔒 Backup & Restore</h1>
-
-    <!-- Top action bar -->
-    <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <a href="{{ url_for('main.index') }}" class="button" style="background: #6c757d;">← Back to Patients</a>
-        <form action="{{ url_for('main.manual_backup') }}" method="POST" style="display: inline;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="button add-button">+ Create Backup Now</button>
-        </form>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">🔒 Backup & Restore</h1>
+        <div class="flex gap-2">
+            <a href="{{ url_for('main.index') }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 text-sm font-medium">
+                ← Back to Patients
+            </a>
+            <form action="{{ url_for('main.manual_backup') }}" method="POST" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium shadow">
+                    + Backup Now
+                </button>
+            </form>
+        </div>
     </div>
 
     <!-- Quick Restore Slots -->
     <div class="backup-section">
-        <h2 style="margin-top: 0;">Quick Restore</h2>
-        <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">
+        <h2 class="text-lg font-semibold text-gray-700 mb-2">Quick Restore</h2>
+        <p class="text-sm text-gray-500 mb-4">
             Roll back the database to an earlier point in time. A safety backup of the current state is always saved first.
         </p>
         <div class="restore-slots">
@@ -41,55 +45,57 @@
 
     <!-- All Backups Table -->
     <div class="backup-section">
-        <h2 style="margin-top: 0;">All Backups</h2>
+        <h2 class="text-lg font-semibold text-gray-700 mb-4">All Backups</h2>
 
         {% if backups %}
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Backup File</th>
-                        <th>Created</th>
-                        <th>Age</th>
-                        <th>Size</th>
-                        <th style="text-align: right;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for b in backups %}
-                    <tr class="{{ 'safety-backup-row' if 'pre_restore' in b.filename }}">
-                        <td style="font-family: monospace; font-size: 0.85em;">
-                            {{ b.filename }}
-                            {% if 'pre_restore' in b.filename %}
-                            <span style="color: #28a745; font-size: 0.85em;">(safety backup)</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ b.timestamp }}</td>
-                        <td style="color: #888;">{{ b.age_label }}</td>
-                        <td style="color: #888;">{{ b.size_kb }} KB</td>
-                        <td style="text-align: right;">
-                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                                <form action="{{ url_for('main.restore_from_backup') }}" method="POST" style="display: inline;"
-                                      onsubmit="return confirm('Restore database from {{ b.filename }}? A safety backup of the current data will be saved first.')">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <input type="hidden" name="filename" value="{{ b.filename }}">
-                                    <button type="submit" class="button restore-button" style="font-size: 0.8em; padding: 3px 8px;">Restore</button>
-                                </form>
-                                <form action="{{ url_for('main.delete_backup') }}" method="POST" style="display: inline;"
-                                      onsubmit="return confirm('Delete backup {{ b.filename }}? This cannot be undone.')">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <input type="hidden" name="filename" value="{{ b.filename }}">
-                                    <button type="submit" class="button delete-button" style="font-size: 0.8em; padding: 3px 8px;">Delete</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Backup File</th>
+                            <th>Created</th>
+                            <th>Age</th>
+                            <th>Size</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        {% for b in backups %}
+                        <tr class="{{ 'safety-backup-row' if 'pre_restore' in b.filename }} hover:bg-blue-50">
+                            <td style="font-family: monospace; font-size: 0.8em;" class="text-gray-700">
+                                {{ b.filename }}
+                                {% if 'pre_restore' in b.filename %}
+                                <span class="text-green-600 text-xs font-medium ml-1">(safety backup)</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-gray-600">{{ b.timestamp }}</td>
+                            <td class="text-gray-400">{{ b.age_label }}</td>
+                            <td class="text-gray-400">{{ b.size_kb }} KB</td>
+                            <td style="text-align: right;">
+                                <div class="flex gap-2 justify-end">
+                                    <form action="{{ url_for('main.restore_from_backup') }}" method="POST" style="display: inline;"
+                                          onsubmit="return confirm('Restore database from {{ b.filename }}? A safety backup of the current data will be saved first.')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="filename" value="{{ b.filename }}">
+                                        <button type="submit" class="bg-green-600 text-white px-2.5 py-1 rounded-lg hover:bg-green-700 text-xs font-medium">Restore</button>
+                                    </form>
+                                    <form action="{{ url_for('main.delete_backup') }}" method="POST" style="display: inline;"
+                                          onsubmit="return confirm('Delete backup {{ b.filename }}? This cannot be undone.')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="filename" value="{{ b.filename }}">
+                                        <button type="submit" class="bg-red-600 text-white px-2.5 py-1 rounded-lg hover:bg-red-700 text-xs font-medium">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
         {% else %}
-        <p style="color: #888; font-style: italic;">
+        <p class="text-gray-400 text-sm italic">
             No backups yet. Backups are created automatically every 10 minutes, or click the button above to create one now.
         </p>
         {% endif %}

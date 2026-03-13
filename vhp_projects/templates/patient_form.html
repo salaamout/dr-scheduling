@@ -3,114 +3,119 @@
 {% block title %}{% if edit %}Edit{% elif duplicate %}Duplicate{% else %}New{% endif %} Patient{% endblock %}
 
 {% block content %}
-    <h1>{% if edit %}Edit{% elif duplicate %}Duplicate{% else %}New{% endif %} Patient</h1>
-    <form method="POST" class="patient-form">
-        {{ form.hidden_tag() }}
-        <div style="margin-bottom: 20px;">
-            {{ form.submit(class="save-btn") }}
-            <a href="{{ url_for('main.index', **filters) }}" onclick="return confirm('Warning: Any unsaved changes will be lost. Click Save if you want to keep your changes.');" style="display: inline-block; margin-left: 10px; text-decoration: none; padding: 10px 20px; background: #6c757d; color: white; border-radius: 4px;">Cancel</a>
-        </div>
-        <div class="field">
-            {{ form.surgery_type.label }}
-            {{ form.surgery_type(id="surgery_type_select") }}
-            {% if form.surgery_type.errors %}
-                {% for error in form.surgery_type.errors %}
-                    <span class="error">{{ error }}</span>
-                {% endfor %}
-            {% endif %}
-        </div>
-        <div class="field">
-            {{ form.surgery_date.label }}
-            {{ form.surgery_date }}
-            {% if form.surgery_date.errors %}
-                {% for error in form.surgery_date.errors %}
-                    <span class="error">{{ error }}</span>
-                {% endfor %}
-            {% endif %}
-        </div>
-        <div class="field">
-            {{ form.chart_number.label }}
-            {{ form.chart_number }}
-            {% if form.chart_number.errors %}
-                {% for error in form.chart_number.errors %}
-                    <span class="error">{{ error }}</span>
-                {% endfor %}
-            {% endif %}
-        </div>
-        <div class="field">
-            {{ form.name.label }}
-            {{ form.name }}
-            {% if form.name.errors %}
-                {% for error in form.name.errors %}
-                    <span class="error">{{ error }}</span>
-                {% endfor %}
-            {% endif %}
-        </div>
-        <div class="field">
-            {{ form.age.label }}
-            {{ form.age }}
-            {% if form.age.errors %}
-                {% for error in form.age.errors %}
-                    <span class="error">{{ error }}</span>
-                {% endfor %}
-            {% endif %}
-        </div>
-        <div class="field">
-            {{ form.sex.label }}
-            {{ form.sex }}
-            {% if form.sex.errors %}
-                {% for error in form.sex.errors %}
-                    <span class="error">{{ error }}</span>
-                {% endfor %}
-            {% endif %}
-        </div>
-        <div class="field">
-            {{ form.procedure.label }}
-            <div id="procedure-autofill" style="margin-bottom: 8px; display: flex; gap: 6px; flex-wrap: wrap;"></div>
-            {{ form.procedure(id="procedure_field") }}
-            {% if form.procedure.errors %}
-                {% for error in form.procedure.errors %}
-                    <span class="error">{{ error }}</span>
-                {% endfor %}
-            {% endif %}
-        </div>
-        <div class="field">
-            <label style="font-weight: bold;">{{ form.eye.label.text }}</label>
-            <div style="display: flex; gap: 15px; margin-top: 5px;">
-                {% for subfield in form.eye %}
-                <label style="font-weight: normal; display: flex; align-items: center; gap: 4px;">
-                    {{ subfield }} {{ subfield.label.text }}
-                </label>
-                {% endfor %}
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">{% if edit %}Edit{% elif duplicate %}Duplicate{% else %}New{% endif %} Patient</h1>
+    </div>
+
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <form method="POST" class="patient-form">
+            {{ form.hidden_tag() }}
+            <div class="flex gap-3 mb-6">
+                {{ form.submit(class="save-btn") }}
+                <a href="{{ url_for('main.index', **filters) }}" onclick="return confirm('Warning: Any unsaved changes will be lost. Click Save if you want to keep your changes.');" class="inline-block px-5 py-2.5 rounded-lg border text-gray-600 hover:bg-gray-50 text-sm font-medium" style="text-decoration: none; line-height: 1.5;">Cancel</a>
             </div>
-            {% if form.eye.errors %}
-                {% for error in form.eye.errors %}
-                    <span class="error">{{ error }}</span>
-                {% endfor %}
-            {% endif %}
-        </div>
-        <div class="field">
-            {{ form.advocate.label }}
-            {{ form.advocate }}
-        </div>
-        <div class="field">
-            {{ form.community.label }}
-            {{ form.community }}
-        </div>
-        <div class="field">
-            {{ form.number.label }}
-            {{ form.number }}
-        </div>
-        <div class="field">
-            {{ form.notes.label }}
-            {{ form.notes }}
-        </div>
-        <div class="field">
-            <label style="font-weight: bold; display: flex; align-items: center; gap: 8px;">
-                {{ form.cancelled }} {{ form.cancelled.label.text }}
-            </label>
-        </div>
-    </form>
+            <div class="field">
+                {{ form.surgery_type.label }}
+                {{ form.surgery_type(id="surgery_type_select") }}
+                {% if form.surgery_type.errors %}
+                    {% for error in form.surgery_type.errors %}
+                        <span class="error">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="field">
+                {{ form.surgery_date.label }}
+                {{ form.surgery_date }}
+                {% if form.surgery_date.errors %}
+                    {% for error in form.surgery_date.errors %}
+                        <span class="error">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="field">
+                {{ form.chart_number.label }}
+                {{ form.chart_number }}
+                {% if form.chart_number.errors %}
+                    {% for error in form.chart_number.errors %}
+                        <span class="error">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="field">
+                {{ form.name.label }}
+                {{ form.name }}
+                {% if form.name.errors %}
+                    {% for error in form.name.errors %}
+                        <span class="error">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="field">
+                {{ form.age.label }}
+                {{ form.age }}
+                {% if form.age.errors %}
+                    {% for error in form.age.errors %}
+                        <span class="error">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="field">
+                {{ form.sex.label }}
+                {{ form.sex }}
+                {% if form.sex.errors %}
+                    {% for error in form.sex.errors %}
+                        <span class="error">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="field">
+                {{ form.procedure.label }}
+                <div id="procedure-autofill" class="flex gap-2 flex-wrap mb-2"></div>
+                {{ form.procedure(id="procedure_field") }}
+                {% if form.procedure.errors %}
+                    {% for error in form.procedure.errors %}
+                        <span class="error">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="field">
+                <label class="font-medium text-sm text-gray-700">{{ form.eye.label.text }}</label>
+                <div class="flex gap-4 mt-2">
+                    {% for subfield in form.eye %}
+                    <label class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer" style="font-weight: normal;">
+                        {{ subfield }} {{ subfield.label.text }}
+                    </label>
+                    {% endfor %}
+                </div>
+                {% if form.eye.errors %}
+                    {% for error in form.eye.errors %}
+                        <span class="error">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="field">
+                {{ form.advocate.label }}
+                {{ form.advocate }}
+            </div>
+            <div class="field">
+                {{ form.community.label }}
+                {{ form.community }}
+            </div>
+            <div class="field">
+                {{ form.number.label }}
+                {{ form.number }}
+            </div>
+            <div class="field">
+                {{ form.notes.label }}
+                {{ form.notes }}
+            </div>
+            <div class="field">
+                <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer" style="font-weight: 500;">
+                    {{ form.cancelled }} {{ form.cancelled.label.text }}
+                </label>
+            </div>
+        </form>
+    </div>
 {% endblock %}
 
 {% block scripts %}
@@ -127,8 +132,7 @@
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.textContent = opt;
-            btn.className = 'button';
-            btn.style.cssText = 'padding: 4px 10px; font-size: 0.85em; background: #6c757d;';
+            btn.className = 'bg-gray-100 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-200 text-xs font-medium border border-gray-200';
             btn.addEventListener('click', function() {
                 var field = document.getElementById('procedure_field');
                 if (field.value && field.value.trim() !== '') {

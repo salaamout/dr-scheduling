@@ -3,29 +3,30 @@
 {% block title %}Patient Database{% endblock %}
 
 {% block content %}
-    <h1>Patient Database</h1>
-
-    <!-- Action bar -->
-    <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <a href="{{ url_for('main.new_patient', **filters) }}" class="button add-button">+ Add New Patient</a>
-        <a href="{{ url_for('main.trash') }}" class="button" style="background: #6c757d;">View Trash</a>
-        <a href="{{ url_for('main.count_summary') }}" class="button" style="background: #17a2b8;">Count Summary</a>
-        <a href="{{ url_for('main.backups_page') }}" class="button" style="background: #28a745;">🔒 Backups</a>
-
-        <!-- Daily Log Print -->
-        <button class="button" style="background: #6f42c1;" onclick="toggleDailyLogForm()">Print Daily Log</button>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Patient Database</h1>
+        <div class="flex gap-2">
+            <button class="bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 text-sm font-medium shadow" onclick="toggleDailyLogForm()">
+                Print Daily Log
+            </button>
+            <a href="{{ url_for('main.new_patient', **filters) }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium shadow">
+                + Add New Patient
+            </a>
+        </div>
     </div>
 
     <!-- Daily Log Form (hidden by default) -->
-    <div id="dailyLogForm" style="display: none; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px;">
-        <form action="{{ url_for('main.print_daily_log') }}" method="GET" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+    <div id="dailyLogForm" style="display: none;" class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
+        <form action="{{ url_for('main.print_daily_log') }}" method="GET" class="flex flex-wrap gap-3 items-end">
             <div>
-                <label for="log_surgery_date" style="display: block; margin-bottom: 5px; font-weight: bold;">Surgery Date</label>
-                <input type="date" id="log_surgery_date" name="surgery_date" required style="padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+                <label for="log_surgery_date" class="block text-xs text-gray-500 mb-1">Surgery Date</label>
+                <input type="date" id="log_surgery_date" name="surgery_date" required
+                       class="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
             </div>
             <div>
-                <label for="log_surgery_type" style="display: block; margin-bottom: 5px; font-weight: bold;">Surgery Type</label>
-                <select id="log_surgery_type" name="surgery_type" required style="padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+                <label for="log_surgery_type" class="block text-xs text-gray-500 mb-1">Surgery Type</label>
+                <select id="log_surgery_type" name="surgery_type" required
+                        class="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
                     <option value="cataract">Cataract</option>
                     <option value="plastics">Plastics</option>
                     <option value="strabismus">Strabismus</option>
@@ -33,20 +34,24 @@
                     <option value="derm">Dermatology</option>
                 </select>
             </div>
-            <button type="submit" class="button" style="background: #6f42c1;">Print</button>
+            <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-sm font-medium">
+                Print
+            </button>
         </form>
     </div>
 
     <!-- Filter bar -->
-    <div style="margin-bottom: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <form action="{{ url_for('main.index') }}" method="GET" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
+        <form action="{{ url_for('main.index') }}" method="GET" class="flex flex-wrap gap-3 items-end">
             <div>
-                <label for="filter_date" style="font-weight: bold; margin-right: 5px;">Date:</label>
-                <input type="date" id="filter_date" name="surgery_date" value="{{ request.args.get('surgery_date', '') }}" style="padding: 4px; border: 1px solid #ddd; border-radius: 4px;">
+                <label for="filter_date" class="block text-xs text-gray-500 mb-1">Date</label>
+                <input type="date" id="filter_date" name="surgery_date" value="{{ request.args.get('surgery_date', '') }}"
+                       class="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
             </div>
             <div>
-                <label for="filter_type" style="font-weight: bold; margin-right: 5px;">Type:</label>
-                <select id="filter_type" name="surgery_type" style="padding: 4px; border: 1px solid #ddd; border-radius: 4px;">
+                <label for="filter_type" class="block text-xs text-gray-500 mb-1">Type</label>
+                <select id="filter_type" name="surgery_type"
+                        class="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
                     <option value="">All</option>
                     <option value="cataract" {{ 'selected' if request.args.get('surgery_type') == 'cataract' }}>Cataract</option>
                     <option value="plastics" {{ 'selected' if request.args.get('surgery_type') == 'plastics' }}>Plastics</option>
@@ -55,96 +60,123 @@
                     <option value="derm" {{ 'selected' if request.args.get('surgery_type') == 'derm' }}>Dermatology</option>
                 </select>
             </div>
-            <div>
-                <label for="filter_search" style="font-weight: bold; margin-right: 5px;">Search:</label>
-                <input type="text" id="filter_search" name="search" value="{{ request.args.get('search', '') }}" placeholder="Chart # or Name" style="padding: 4px; border: 1px solid #ddd; border-radius: 4px; width: 160px;">
+            <div class="flex-1 min-w-48">
+                <label for="filter_search" class="block text-xs text-gray-500 mb-1">Search</label>
+                <input type="text" id="filter_search" name="search" value="{{ request.args.get('search', '') }}" placeholder="Chart # or Name"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none">
             </div>
-            <button type="submit" class="button">Filter</button>
-            <a href="{{ url_for('main.index') }}" class="button" style="background: #6c757d;">Clear</a>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium">
+                Filter
+            </button>
+            <a href="{{ url_for('main.index') }}" class="text-blue-600 hover:underline text-sm py-2">Clear</a>
         </form>
     </div>
 
     <!-- Patient count -->
-    <div style="margin-bottom: 10px; font-weight: bold; font-size: 1.05em;">
-        Patient Count: <span class="patient-count-value">{{ patient_count }}</span>
+    <div class="mb-4 text-sm text-gray-500">
+        Patient Count: <span class="patient-count-value font-semibold text-gray-800">{{ patient_count }}</span>
     </div>
 
     {% if patients %}
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th data-sort="surgery_date" class="{{ 'sorted-asc' if sort == 'surgery_date' and order == 'asc' else 'sorted-desc' if sort == 'surgery_date' and order == 'desc' else '' }}">Surgery Date</th>
-                    <th data-sort="surgery_type" class="{{ 'sorted-asc' if sort == 'surgery_type' and order == 'asc' else 'sorted-desc' if sort == 'surgery_type' and order == 'desc' else '' }}">Surgery Type</th>
-                    <th data-sort="number" class="{{ 'sorted-asc' if sort == 'number' and order == 'asc' else 'sorted-desc' if sort == 'number' and order == 'desc' else '' }}">Surgery #</th>
-                    <th data-sort="chart_number" class="{{ 'sorted-asc' if sort == 'chart_number' and order == 'asc' else 'sorted-desc' if sort == 'chart_number' and order == 'desc' else '' }}">Chart #</th>
-                    <th data-sort="name" class="{{ 'sorted-asc' if sort == 'name' and order == 'asc' else 'sorted-desc' if sort == 'name' and order == 'desc' else '' }}">Name</th>
-                    <th data-sort="age" class="{{ 'sorted-asc' if sort == 'age' and order == 'asc' else 'sorted-desc' if sort == 'age' and order == 'desc' else '' }}">Age</th>
-                    <th data-sort="sex" class="{{ 'sorted-asc' if sort == 'sex' and order == 'asc' else 'sorted-desc' if sort == 'sex' and order == 'desc' else '' }}">Sex</th>
-                    <th>Procedure</th>
-                    <th data-sort="eye" class="{{ 'sorted-asc' if sort == 'eye' and order == 'asc' else 'sorted-desc' if sort == 'eye' and order == 'desc' else '' }}">Eye</th>
-                    <th>Advocate</th>
-                    <th>Community</th>
-                    <th data-sort="cancelled" class="{{ 'sorted-asc' if sort == 'cancelled' and order == 'asc' else 'sorted-desc' if sort == 'cancelled' and order == 'desc' else '' }}">Cancelled</th>
-                    <th>Notes</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for patient in patients %}
-                <tr class="{{ 'cancelled-row' if patient.cancelled }}">
-                    <td>{{ patient.surgery_date.strftime('%Y-%m-%d') }}</td>
-                    <td>{{ patient.surgery_type }}</td>
-                    <td class="editable-number" data-patient-id="{{ patient.id }}">
-                        <span class="number-display" onclick="editNumber(this)">{{ patient.number or '—' }}</span>
-                        <input type="text" class="number-input" value="{{ patient.number or '' }}"
-                               style="display:none; width: 60px; padding: 2px 4px; border: 1px solid #007bff; border-radius: 3px;"
-                               onblur="saveNumber(this)" onkeydown="if(event.key==='Enter'){this.blur();}">
-                    </td>
-                    <td>{{ patient.chart_number }}</td>
-                    <td>{{ patient.name }}</td>
-                    <td>{{ patient.age }}</td>
-                    <td>{{ patient.sex }}</td>
-                    <td>{{ patient.procedure }}</td>
-                    <td>{{ patient.eye or '' }}</td>
-                    <td>{{ patient.advocate }}</td>
-                    <td>{{ patient.community }}</td>
-                    <td>
-                        <button class="cancel-toggle-btn {{ 'cancelled-active' if patient.cancelled }}"
-                                onclick="toggleCancelled({{ patient.id }}, this)"
-                                title="Toggle cancelled">
-                            {{ 'Yes' if patient.cancelled else '' }}
-                        </button>
-                    </td>
-                    <td class="notes-cell" title="{{ patient.notes }}">{{ patient.notes }}</td>
-                    <td class="actions">
-                        <a href="{{ url_for('main.edit_patient', patient_id=patient.id, **filters) }}" class="button">Edit</a>
-                        <a href="{{ url_for('main.duplicate_patient', patient_id=patient.id, **filters) }}" class="button" style="background: #17a2b8;">Dup</a>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="table-container">
+            <table>
+                <colgroup>
+                    <col style="width: 7%;">   <!-- Surgery Date -->
+                    <col style="width: 6%;">   <!-- Surgery Type -->
+                    <col style="width: 3%;">   <!-- Surgery # -->
+                    <col style="width: 5%;">   <!-- Chart # -->
+                    <col style="width: 13%;">  <!-- Name -->
+                    <col style="width: 3%;">   <!-- Age -->
+                    <col style="width: 3%;">   <!-- Sex -->
+                    <col style="width: 18%;">  <!-- Procedure -->
+                    <col style="width: 3%;">   <!-- Eye -->
+                    <col style="width: 5%;">   <!-- Advocate -->
+                    <col style="width: 6%;">   <!-- Community -->
+                    <col style="width: 5%;">   <!-- Cancelled -->
+                    <col style="width: 10%;">  <!-- Notes -->
+                    <col style="width: 13%;">  <!-- Actions -->
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th data-sort="surgery_date" class="{{ 'sorted-asc' if sort == 'surgery_date' and order == 'asc' else 'sorted-desc' if sort == 'surgery_date' and order == 'desc' else '' }}">Surgery Date</th>
+                        <th data-sort="surgery_type" class="{{ 'sorted-asc' if sort == 'surgery_type' and order == 'asc' else 'sorted-desc' if sort == 'surgery_type' and order == 'desc' else '' }}">Surgery Type</th>
+                        <th data-sort="number" class="{{ 'sorted-asc' if sort == 'number' and order == 'asc' else 'sorted-desc' if sort == 'number' and order == 'desc' else '' }}">Surgery #</th>
+                        <th data-sort="chart_number" class="{{ 'sorted-asc' if sort == 'chart_number' and order == 'asc' else 'sorted-desc' if sort == 'chart_number' and order == 'desc' else '' }}">Chart #</th>
+                        <th data-sort="name" class="{{ 'sorted-asc' if sort == 'name' and order == 'asc' else 'sorted-desc' if sort == 'name' and order == 'desc' else '' }}">Name</th>
+                        <th data-sort="age" class="{{ 'sorted-asc' if sort == 'age' and order == 'asc' else 'sorted-desc' if sort == 'age' and order == 'desc' else '' }}">Age</th>
+                        <th data-sort="sex" class="{{ 'sorted-asc' if sort == 'sex' and order == 'asc' else 'sorted-desc' if sort == 'sex' and order == 'desc' else '' }}">Sex</th>
+                        <th>Procedure</th>
+                        <th data-sort="eye" class="{{ 'sorted-asc' if sort == 'eye' and order == 'asc' else 'sorted-desc' if sort == 'eye' and order == 'desc' else '' }}">Eye</th>
+                        <th>Advocate</th>
+                        <th>Community</th>
+                        <th data-sort="cancelled" class="{{ 'sorted-asc' if sort == 'cancelled' and order == 'asc' else 'sorted-desc' if sort == 'cancelled' and order == 'desc' else '' }}">Cancelled</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for patient in patients %}
+                    <tr class="{{ 'cancelled-row' if patient.cancelled }} hover:bg-blue-50">
+                        <td class="text-gray-600">{{ patient.surgery_date.strftime('%Y-%m-%d') }}</td>
+                        <td class="text-gray-600">{{ patient.surgery_type }}</td>
+                        <td class="editable-number" data-patient-id="{{ patient.id }}">
+                            <span class="number-display" onclick="editNumber(this)">{{ patient.number or '—' }}</span>
+                            <input type="text" class="number-input" value="{{ patient.number or '' }}"
+                                   style="display:none; width: 60px; padding: 2px 4px; border: 1px solid #3b82f6; border-radius: 4px;"
+                                   onblur="saveNumber(this)" onkeydown="if(event.key==='Enter'){this.blur();}">
+                        </td>
+                        <td class="text-gray-600">{{ patient.chart_number }}</td>
+                        <td class="font-medium text-gray-800 wrap-cell">{{ patient.name }}</td>
+                        <td class="text-gray-600">{{ patient.age }}</td>
+                        <td class="text-gray-600">{{ patient.sex }}</td>
+                        <td class="text-gray-600 wrap-cell">{{ patient.procedure }}</td>
+                        <td class="text-gray-600">{{ patient.eye or '' }}</td>
+                        <td class="text-gray-600">{{ patient.advocate }}</td>
+                        <td class="text-gray-600">{{ patient.community }}</td>
+                        <td>
+                            <button class="cancel-toggle-btn {{ 'cancelled-active' if patient.cancelled }}"
+                                    onclick="toggleCancelled({{ patient.id }}, this)"
+                                    title="Toggle cancelled">
+                                {{ 'Yes' if patient.cancelled else '' }}
+                            </button>
+                        </td>
+                        <td class="notes-cell wrap-cell" title="{{ patient.notes }}">{{ patient.notes }}</td>
+                        <td class="actions">
+                            <a href="{{ url_for('main.edit_patient', patient_id=patient.id, **filters) }}" class="text-blue-600 hover:underline text-xs font-medium">Edit</a>
+                            <a href="{{ url_for('main.duplicate_patient', patient_id=patient.id, **filters) }}" class="text-teal-600 hover:underline text-xs font-medium">Dup</a>
 
-                        <!-- Print dropdown -->
-                        <div class="dropdown">
-                            <button class="button" style="background: #6f42c1;" onclick="togglePrintMenu({{ patient.id }})">Print ▾</button>
-                            <div id="printMenu{{ patient.id }}" class="dropdown-content">
-                                <a class="dropdown-item" href="{{ url_for('main.print_patient', patient_id=patient.id, type='laserband') }}">Laserband</a>
-                                <a class="dropdown-item" href="{{ url_for('main.print_patient', patient_id=patient.id, type='log', log_type='Single') }}">Surgery Log</a>
+                            <!-- Print dropdown -->
+                            <div class="dropdown">
+                                <button class="button" style="background: #7c3aed; padding: 2px 8px; font-size: 0.75rem;" onclick="togglePrintMenu({{ patient.id }})">Print ▾</button>
+                                <div id="printMenu{{ patient.id }}" class="dropdown-content">
+                                    <a class="dropdown-item" href="{{ url_for('main.print_patient', patient_id=patient.id, type='laserband') }}">Laserband</a>
+                                    <a class="dropdown-item" href="{{ url_for('main.print_patient', patient_id=patient.id, type='log', log_type='Single') }}">Surgery Log</a>
+                                </div>
                             </div>
-                        </div>
 
-                        <form action="{{ url_for('main.delete_patient', patient_id=patient.id) }}" method="POST" style="display: inline;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            {% for key, val in filters.items() %}
-                            <input type="hidden" name="{{ key }}" value="{{ val }}">
-                            {% endfor %}
-                            <button type="button" class="button delete-button" onclick="confirmDelete(this.form, '{{ patient.name }}')">Del</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                            <form action="{{ url_for('main.delete_patient', patient_id=patient.id) }}" method="POST" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                {% for key, val in filters.items() %}
+                                <input type="hidden" name="{{ key }}" value="{{ val }}">
+                                {% endfor %}
+                                <button type="button" class="text-red-500 hover:underline text-xs font-medium" onclick="confirmDelete(this.form, '{{ patient.name }}')">Del</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-4 py-3 text-xs text-gray-400 border-t">
+            {{ patients|length }} patient{{ 's' if patients|length != 1 else '' }}
+        </div>
     </div>
     {% else %}
-    <p>No patients found.</p>
+    <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-100 text-center text-gray-400">
+        <p class="text-lg mb-2">No patients found.</p>
+        <p class="text-sm">Click "+ Add New Patient" to get started.</p>
+    </div>
     {% endif %}
 {% endblock %}
 

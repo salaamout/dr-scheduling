@@ -1,86 +1,139 @@
 /* VHP Patient Database - Shared Styles */
 
-body {
-    padding: 20px;
-    max-width: 100%;
-    overflow-x: auto;
-    font-family: Arial, sans-serif;
-}
+/* Navigation */
+.nav-link { transition: background-color 0.2s; }
+.nav-link:hover { background-color: rgba(255,255,255,0.2); }
+.nav-link.active { background-color: rgba(255,255,255,0.25); font-weight: 600; }
+
+/* Card style */
+.card { transition: transform 0.15s, box-shadow 0.15s; }
+.card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
 
 /* Table styles */
 table {
     border-collapse: collapse;
     width: 100%;
-    margin-top: 20px;
-    font-size: 0.9em;
+    font-size: 0.8rem;
+    table-layout: fixed;
 }
 
 th, td {
-    padding: 8px;
+    padding: 0.35rem 0.4rem;
     text-align: left;
-    border: 1px solid #ddd;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Allow wrapping on content-heavy columns */
+td.wrap-cell {
+    white-space: normal;
+    word-break: break-word;
+    overflow: visible;
+    text-overflow: unset;
+    line-height: 1.3;
+}
+
+thead {
+    background-color: #f9fafb;
+    color: #4b5563;
 }
 
 th {
-    background-color: #f4f4f4;
+    font-weight: 500;
+    cursor: pointer;
     position: sticky;
     top: 0;
-    cursor: pointer;
+    z-index: 10;
+    background-color: #f9fafb;
 }
 
 th:hover {
-    background-color: #e4e4e4;
+    background-color: #f3f4f6;
 }
 
 th.sorted-asc::after {
     content: " ▲";
-    font-size: 0.8em;
+    font-size: 0.75em;
+    color: #3b82f6;
 }
 
 th.sorted-desc::after {
     content: " ▼";
-    font-size: 0.8em;
+    font-size: 0.75em;
+    color: #3b82f6;
 }
 
-tr:nth-child(even) {
-    background-color: #f9f9f9;
+tbody tr {
+    border-top: 1px solid #f3f4f6;
+    position: relative;
 }
 
-tr:hover {
-    background-color: #f5f5f5;
+tbody tr:hover {
+    background-color: #eff6ff;
 }
 
 /* Button styles */
-.button {
-    padding: 5px 10px;
+.btn {
+    padding: 0.5rem 1rem;
     text-decoration: none;
-    background: #007bff;
     color: white;
-    border-radius: 3px;
+    border-radius: 0.5rem;
     display: inline-block;
     border: none;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background-color 0.15s;
+    line-height: 1.5;
 }
 
-.add-button {
-    margin-bottom: 20px;
-    font-size: 1em;
+.btn-blue { background: #2563eb; }
+.btn-blue:hover { background: #1d4ed8; }
+.btn-green { background: #16a34a; }
+.btn-green:hover { background: #15803d; }
+.btn-gray { background: #6b7280; }
+.btn-gray:hover { background: #4b5563; }
+.btn-red { background: #dc2626; }
+.btn-red:hover { background: #b91c1c; }
+.btn-purple { background: #7c3aed; }
+.btn-purple:hover { background: #6d28d9; }
+.btn-teal { background: #0d9488; }
+.btn-teal:hover { background: #0f766e; }
+.btn-sm {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
 }
 
-.delete-button {
-    background: #dc3545;
+/* Legacy .button class - kept for JS compatibility */
+.button {
+    padding: 0.375rem 0.75rem;
+    text-decoration: none;
+    background: #2563eb;
+    color: white;
+    border-radius: 0.375rem;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: background-color 0.15s;
 }
 
-.restore-button {
-    background: #28a745;
-}
+.button:hover { background: #1d4ed8; }
+
+.delete-button { background: #dc2626; }
+.delete-button:hover { background: #b91c1c; }
+.restore-button { background: #16a34a; }
+.restore-button:hover { background: #15803d; }
 
 /* Actions column */
 .actions {
     display: flex;
-    gap: 10px;
+    gap: 0.35rem;
+    align-items: center;
+    flex-wrap: wrap;
+    white-space: normal;
 }
 
 /* Dropdown */
@@ -89,57 +142,62 @@ tr:hover {
     display: inline-block;
 }
 
+/* Dropdown portal: rendered in <body>, positioned via JS */
+.dropdown-portal {
+    position: fixed;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    border-radius: 0.5rem;
+    z-index: 9999;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+/* Legacy .dropdown-content kept as hidden; portal replaces it */
 .dropdown-content {
     display: none;
-    position: absolute;
-    background-color: #f9f9f9;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    left: 0;
-    top: 100%;
 }
 
 .dropdown-item {
-    color: black;
-    padding: 12px 16px;
+    color: #374151;
+    padding: 0.625rem 1rem;
     text-decoration: none;
     display: block;
+    font-size: 0.8rem;
 }
 
 .dropdown-item:hover {
-    background-color: #f1f1f1;
+    background-color: #eff6ff;
+    color: #2563eb;
 }
 
 /* Table container */
 .table-container {
-    overflow-x: auto;
-    margin-top: 20px;
+    overflow: visible;
 }
 
-/* Notes cell truncation */
+/* Notes cell */
 .notes-cell {
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: #6b7280;
+    font-size: 0.75rem;
 }
 
 /* Form styles */
 form.patient-form {
     max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
 }
 
 .field {
-    margin-bottom: 15px;
+    margin-bottom: 1rem;
 }
 
 .field label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
+    margin-bottom: 0.375rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: #374151;
 }
 
 input[type="text"],
@@ -148,10 +206,22 @@ input[type="number"],
 select,
 textarea {
     width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
     box-sizing: border-box;
+    font-size: 0.875rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 textarea {
@@ -160,45 +230,25 @@ textarea {
 
 .save-btn {
     display: inline-block;
-    padding: 10px 20px;
-    background: #28a745;
+    padding: 0.625rem 1.5rem;
+    background: #16a34a;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 0.5rem;
     cursor: pointer;
     text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
 }
 
 .save-btn:hover {
-    background: #218838;
+    background: #15803d;
 }
 
 .error {
-    color: red;
-    font-size: 0.9em;
-}
-
-/* Flash messages */
-.flash-messages {
-    margin-bottom: 15px;
-}
-
-.flash-messages .alert {
-    padding: 10px 15px;
-    border-radius: 4px;
-    margin-bottom: 8px;
-}
-
-.flash-messages .alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.flash-messages .alert-error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    color: #dc2626;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
 }
 
 /* Cancelled row */
@@ -208,89 +258,91 @@ textarea {
 }
 
 .cancelled-row td {
-    color: #888;
+    color: #9ca3af;
 }
 
 /* Cancel toggle button */
 .cancel-toggle-btn {
     background: transparent;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    padding: 2px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.125rem 0.5rem;
     cursor: pointer;
-    font-size: 0.85em;
+    font-size: 0.8rem;
     min-width: 36px;
     min-height: 24px;
-    color: #666;
+    color: #6b7280;
+    transition: all 0.15s;
 }
 
 .cancel-toggle-btn:hover {
-    background: #f8d7da;
-    border-color: #dc3545;
+    background: #fef2f2;
+    border-color: #dc2626;
 }
 
 .cancel-toggle-btn.cancelled-active {
-    background: #f8d7da;
-    border-color: #dc3545;
-    color: #dc3545;
+    background: #fef2f2;
+    border-color: #dc2626;
+    color: #dc2626;
     font-weight: bold;
 }
 
 /* Inline editable number */
 .editable-number .number-display {
     cursor: pointer;
-    padding: 2px 4px;
-    border-radius: 3px;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
 }
 
 .editable-number .number-display:hover {
-    background: #e7f1ff;
-    outline: 1px dashed #007bff;
+    background: #eff6ff;
+    outline: 1px dashed #3b82f6;
 }
 
 /* Backup & Restore page */
 .backup-section {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 20px;
-    margin-bottom: 20px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .backup-info {
-    background: #e7f3ff;
-    border: 1px solid #b8daff;
-    border-radius: 6px;
-    padding: 12px 16px;
-    margin-bottom: 20px;
-    font-size: 0.9em;
-    color: #004085;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+    color: #1e40af;
     line-height: 1.6;
 }
 
 .restore-slots {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 10px;
+    gap: 0.75rem;
 }
 
 .restore-slot-btn {
     width: 100%;
-    padding: 12px 10px;
-    background: #fff8e1;
-    border: 1px solid #ffe082;
-    border-radius: 6px;
-    color: #795548;
-    font-size: 0.9em;
-    font-weight: bold;
+    padding: 0.75rem;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 0.5rem;
+    color: #92400e;
+    font-size: 0.875rem;
+    font-weight: 600;
     cursor: pointer;
     transition: background 0.15s;
 }
 
 .restore-slot-btn:hover {
-    background: #ffecb3;
+    background: #fef3c7;
 }
 
 .safety-backup-row {
-    background-color: #e8f5e9 !important;
+    background-color: #f0fdf4 !important;
 }
